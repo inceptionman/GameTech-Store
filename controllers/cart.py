@@ -6,6 +6,10 @@ from flask_login import login_required, current_user
 from database import db
 from models.database_models import CartItem, Game, Hardware, Order, OrderItem
 
+PRODUCTO_ELIMINADO = 'Producto eliminado del carrito'
+STOCK_INSUFICIENTE = 'Stock insuficiente'
+VER_CARRITO = 'cart.ver_carrito'
+
 cart_bp = Blueprint('cart', __name__)
 
 @cart_bp.route('/carrito')
@@ -50,8 +54,8 @@ def agregar_al_carrito():
     # Verificar stock
     if product.stock < quantity:
         if request.is_json:
-            return jsonify({'success': False, 'message': 'Stock insuficiente'}), 400
-        flash('Stock insuficiente', 'danger')
+            return jsonify({'success': False, 'message': STOCK_INSUFICIENTE}), 400
+        flash(STOCK_INSUFICIENTE, 'danger')
         return redirect(request.referrer or url_for('index'))
     
     # Verificar si ya existe en el carrito
@@ -95,13 +99,13 @@ def actualizar_cantidad(item_id):
     # Verificar que el item pertenece al usuario
     if cart_item.user_id != current_user.id:
         flash('No tienes permiso para modificar este item', 'danger')
-        return redirect(url_for('cart.ver_carrito'))
+        return redirect(url_for(VER_CARRITO))
     
     quantity = int(request.form.get('quantity', 1))
     
     if quantity <= 0:
         db.session.delete(cart_item)
-        flash('Producto eliminado del carrito', 'info')
+        flash(PRODUCTO_ELIMINADO, 'info')
     else:
         # Verificar stock
         product = cart_item.get_product()
@@ -109,10 +113,10 @@ def actualizar_cantidad(item_id):
             cart_item.quantity = quantity
             flash('Cantidad actualizada', 'success')
         else:
-            flash('Stock insuficiente', 'danger')
+            flash(STOCK_INSUFICIENTE, 'danger')
     
     db.session.commit()
-    return redirect(url_for('cart.ver_carrito'))
+    return redirect(url_for(VER_CARRITO))
 
 @cart_bp.route('/carrito/eliminar/<int:item_id>', methods=['POST'])
 @login_required
@@ -125,7 +129,7 @@ def eliminar_del_carrito(item_id):
         if request.is_json:
             return jsonify({'success': False, 'message': 'No autorizado'}), 403
         flash('No tienes permiso para eliminar este item', 'danger')
-        return redirect(url_for('cart.ver_carrito'))
+        return redirect(url_for(VER_CARRITO))
     
     db.session.delete(cart_item)
     db.session.commit()
@@ -133,12 +137,12 @@ def eliminar_del_carrito(item_id):
     if request.is_json:
         return jsonify({
             'success': True,
-            'message': 'Producto eliminado del carrito',
+            'message': PRODUCTO_ELIMINADO,
             'cart_count': CartItem.query.filter_by(user_id=current_user.id).count()
         })
     
-    flash('Producto eliminado del carrito', 'success')
-    return redirect(url_for('cart.ver_carrito'))
+    flash(PRODUCTO_ELIMINADO, 'success')
+    return redirect(url_for(VER_CARRITO))
 
 @cart_bp.route('/carrito/vaciar', methods=['POST'])
 @login_required
@@ -148,7 +152,7 @@ def vaciar_carrito():
     db.session.commit()
     
     flash('Carrito vaciado', 'info')
-    return redirect(url_for('cart.ver_carrito'))
+    return redirect(url_for(VER_CARRITO))
 
 @cart_bp.route('/carrito/checkout', methods=['GET', 'POST'])
 @login_required
@@ -158,7 +162,7 @@ def checkout():
     
     if not cart_items:
         flash('Tu carrito está vacío', 'warning')
-        return redirect(url_for('cart.ver_carrito'))
+        return redirect(url_for(VER_CARRITO))
     
     if request.method == 'POST':
         # Calcular total
@@ -180,7 +184,7 @@ def checkout():
             if not product or product.stock < cart_item.quantity:
                 db.session.rollback()
                 flash(f'Stock insuficiente para {product.nombre if hasattr(product, "nombre") else product.modelo}', 'danger')
-                return redirect(url_for('cart.ver_carrito'))
+                return redirect(url_for(VER_CARRITO))
             
             # Crear item de orden
             order_item = OrderItem(

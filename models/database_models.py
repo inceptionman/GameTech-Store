@@ -7,6 +7,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_, and_
 import json
 
+CASCADE = 'all, delete-orphan'
+
 class User(db.Model):
     """Modelo de usuario"""
     __tablename__ = 'users'
@@ -22,8 +24,8 @@ class User(db.Model):
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
     
     # Relaciones
-    cart_items = db.relationship('CartItem', backref='user', lazy='dynamic', cascade='all, delete-orphan')
-    orders = db.relationship('Order', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    cart_items = db.relationship('CartItem', backref='user', lazy='dynamic', cascade=CASCADE)
+    orders = db.relationship('Order', backref='user', lazy='dynamic', cascade=CASCADE)
     
     def set_password(self, password):
         """Establecer contraseña hasheada"""
@@ -240,7 +242,7 @@ class Order(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relaciones
-    items = db.relationship('OrderItem', backref='order', lazy='dynamic', cascade='all, delete-orphan')
+    items = db.relationship('OrderItem', backref='order', lazy='dynamic', cascade=CASCADE)
     
     def __repr__(self):
         return f'<Order {self.id} - ${self.total}>'

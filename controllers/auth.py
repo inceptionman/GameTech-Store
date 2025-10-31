@@ -11,6 +11,14 @@ import re
 import secrets
 from datetime import datetime, timedelta, timezone
 
+AUTH_REGISTRO = 'auth/registro.html'
+RESET_PASSWORD = 'auth/reset_password.html'
+AUTH_LOGIN = 'auth.login'
+
+# Patrones de validación de contraseña
+PATTERN_LOWERCASE = r'[a-z]'
+PATTERN_UPPERCASE = r'[A-Z]'
+PATTERN_DIGIT = r'\d'
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/registro', methods=['GET', 'POST'])
@@ -28,37 +36,37 @@ def registro():
         # Validaciones básicas
         if not username or not email or not password:
             flash('Todos los campos son obligatorios', 'danger')
-            return render_template('auth/registro.html')
+            return render_template(AUTH_REGISTRO)
         
         if password != confirm_password:
             flash('Las contraseñas no coinciden', 'danger')
-            return render_template('auth/registro.html')
+            return render_template(AUTH_REGISTRO)
         
         # Validaciones de seguridad para la contraseña
         if len(password) < 8:
             flash('La contraseña debe tener al menos 8 caracteres', 'danger')
-            return render_template('auth/registro.html')
+            return render_template(AUTH_REGISTRO)
         
-        if not re.search(r'[A-Z]', password):
+        if not re.search(PATTERN_UPPERCASE, password):
             flash('La contraseña debe contener al menos una letra mayúscula', 'danger')
-            return render_template('auth/registro.html')
+            return render_template(AUTH_REGISTRO)
         
-        if not re.search(r'[a-z]', password):
+        if not re.search(PATTERN_LOWERCASE, password):
             flash('La contraseña debe contener al menos una letra minúscula', 'danger')
-            return render_template('auth/registro.html')
+            return render_template(AUTH_REGISTRO)
         
-        if not re.search(r'\d', password):
+        if not re.search(PATTERN_DIGIT, password):
             flash('La contraseña debe contener al menos un número', 'danger')
-            return render_template('auth/registro.html')
+            return render_template(AUTH_REGISTRO)
         
         # Verificar si el usuario ya existe
         if User.query.filter_by(username=username).first():
             flash('El nombre de usuario ya está en uso', 'danger')
-            return render_template('auth/registro.html')
+            return render_template(AUTH_REGISTRO)
         
         if User.query.filter_by(email=email).first():
             flash('El email ya está registrado', 'danger')
-            return render_template('auth/registro.html')
+            return render_template(AUTH_REGISTRO)
         
         # Crear nuevo usuario con contraseña cifrada
         user = User(username=username, email=email)
@@ -68,9 +76,9 @@ def registro():
         db.session.commit()
         
         flash('¡Registro exitoso! Ahora puedes iniciar sesión', 'success')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for(AUTH_LOGIN))
     
-    return render_template('auth/registro.html')
+    return render_template(AUTH_REGISTRO)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -139,7 +147,7 @@ def editar_perfil():
         # Cambiar contraseña
         if current_password and new_password:
             if current_user.check_password(current_password):
-                if len(new_password) >= 8 and re.search(r'[A-Z]', new_password) and re.search(r'[a-z]', new_password) and re.search(r'\d', new_password):
+                if len(new_password) >= 8 and re.search(PATTERN_UPPERCASE, new_password) and re.search(PATTERN_LOWERCASE, new_password) and re.search(PATTERN_DIGIT, new_password):
                     current_user.set_password(new_password)
                     flash('Contraseña actualizada correctamente', 'success')
                 else:
@@ -185,10 +193,10 @@ El enlace expirará en 1 hora.
             mail.send(msg)
             
             flash('Se ha enviado un email con las instrucciones para recuperar tu contraseña', 'info')
-            return redirect(url_for('auth.login'))
+            return redirect(url_for(AUTH_LOGIN))
         
         flash('Si el email existe en nuestra base de datos, recibirás las instrucciones para recuperar tu contraseña', 'info')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for(AUTH_LOGIN))
     
     return render_template('auth/recuperar_password.html')
 
@@ -211,11 +219,11 @@ def reset_password(token):
     
     if user is None:
         flash('Error al conectar con la base de datos o token inválido. Por favor, solicita un nuevo enlace.', 'danger')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for(AUTH_LOGIN))
     
     if user.reset_token_expiry < datetime.now(timezone.utc):
         flash('El enlace de recuperación ha expirado. Por favor, solicita uno nuevo.', 'danger')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for(AUTH_LOGIN))
 
     if request.method == 'POST':
         try:
@@ -234,22 +242,22 @@ def reset_password(token):
                 errors.append('La contraseña debe tener al menos 8 caracteres')
                 
             # Validar mayúscula
-            if not re.search(r'[A-Z]', password):
+            if not re.search(PATTERN_UPPERCASE, password):
                 errors.append('La contraseña debe contener al menos una letra mayúscula')
                 
             # Validar minúscula
-            if not re.search(r'[a-z]', password):
+            if not re.search(PATTERN_LOWERCASE, password):
                 errors.append('La contraseña debe contener al menos una letra minúscula')
                 
             # Validar número
-            if not re.search(r'\d', password):
+            if not re.search(PATTERN_DIGIT, password):
                 errors.append('La contraseña debe contener al menos un número')
             
             # Si hay errores, mostrarlos todos juntos
             if errors:
                 for error in errors:
                     flash(error, 'danger')
-                return render_template('auth/reset_password.html')
+                return render_template(RESET_PASSWORD)
             
             # Si pasa todas las validaciones, actualizar la contraseña
             user.set_password(password)
@@ -258,12 +266,12 @@ def reset_password(token):
             db.session.commit()
             
             flash('Tu contraseña ha sido actualizada correctamente. Ahora puedes iniciar sesión', 'success')
-            return redirect(url_for('auth.login'))
+            return redirect(url_for(AUTH_LOGIN))
             
         except Exception:
             db.session.rollback()
             flash('Ocurrió un error al actualizar la contraseña. Por favor, intenta nuevamente.', 'danger')
-            return render_template('auth/reset_password.html')
+            return render_template(RESET_PASSWORD)
 
     # Si es método GET o hubo error en el POST
-    return render_template('auth/reset_password.html')
+    return render_template(RESET_PASSWORD)

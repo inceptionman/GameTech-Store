@@ -12,6 +12,7 @@ from datetime import datetime
 
 UPLOAD = 'static/uploads'
 ADMIN_JUEGOS = 'admin.juegos'
+ADMIN_HARDWARE = 'admin.hardware'
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -180,7 +181,7 @@ def nuevo_hardware():
             db.session.add(hardware)
             db.session.commit()
             flash('Componente creado exitosamente', 'success')
-            return redirect(url_for('admin.hardware'))
+            return redirect(url_for(ADMIN_HARDWARE))
         except Exception as e:
             flash(f'Error al crear componente: {str(e)}', 'danger')
     
@@ -213,7 +214,7 @@ def editar_hardware(hardware_id):
             
             db.session.commit()
             flash('Componente actualizado exitosamente', 'success')
-            return redirect(url_for('admin.hardware'))
+            return redirect(url_for(ADMIN_HARDWARE))
         except Exception as e:
             flash(f'Error al actualizar componente: {str(e)}', 'danger')
     
@@ -290,4 +291,4 @@ def eliminar_hardware(hardware_id):
         flash('Componente eliminado exitosamente', 'success')
     except Exception as e:
         flash(f'Error al eliminar componente: {str(e)}', 'danger')
-    return redirect(url_for('admin.hardware'))
+    return redirect(url_for(ADMIN_HARDWARE))
