@@ -20,13 +20,20 @@ def seed_database():
     from models.database_models import Game, Hardware, User
     from werkzeug.security import generate_password_hash
     from os import environ
-    # Crear usuario admin por defecto
-    admin = User(
-        username='admin',
-        email='admin@gametechstore.com',
-        password_hash=generate_password_hash('admin123')
-    )
-    db.session.add(admin)
+    # Crear usuario admin por defecto si no existe
+    admin_user = User.query.filter_by(username='admin').first()
+    if not admin_user:
+        admin_password = environ.get('ADMIN_PASSWORD')
+        if not admin_password:
+            raise ValueError('ADMIN_PASSWORD environment variable is not set')
+            
+        admin = User(
+            username='admin',
+            email='admin@gametechstore.com',
+            password_hash=generate_password_hash(admin_password),
+            is_admin=True  # Aseguramos que el usuario admin tenga permisos de administrador
+        )
+        db.session.add(admin)
     
     # Agregar juegos
     juegos = [

@@ -36,3 +36,4 @@ python-dotenv==1.0.0
 
 # PostgreSQL (para Neon u otros servicios)
 psycopg2==2.9.11
+

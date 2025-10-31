@@ -246,3 +246,45 @@ def actualizar_estado_orden(order_id):
     else:
         flash('Estado inválido', 'danger')
     return redirect(url_for('admin.ver_orden', order_id=order_id))
+
+@admin_bp.route('/admin/juego/<int:game_id>/eliminar', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_juego(game_id):
+    """Eliminar juego existente"""
+    game = Game.query.get_or_404(game_id)
+    try:
+        # Si el juego tiene una imagen, podríamos eliminarla del sistema de archivos aquí
+        if game.imagen and game.imagen.startswith('/static/uploads/'):
+            try:
+                os.remove(os.path.join('static', game.imagen.lstrip('/static/')))
+            except OSError:
+                pass  # Si la imagen no existe, continuamos
+        
+        db.session.delete(game)
+        db.session.commit()
+        flash('Juego eliminado exitosamente', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar juego: {str(e)}', 'danger')
+    return redirect(url_for('admin.juegos'))
+
+@admin_bp.route('/admin/hardware/<int:hardware_id>/eliminar', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_hardware(hardware_id):
+    """Eliminar componente de hardware existente"""
+    component = Hardware.query.get_or_404(hardware_id)
+    try:
+        # Si el componente tiene una imagen, podríamos eliminarla del sistema de archivos aquí
+        if component.imagen and component.imagen.startswith('/static/uploads/'):
+            try:
+                os.remove(os.path.join('static', component.imagen.lstrip('/static/')))
+            except OSError:
+                pass  # Si la imagen no existe, continuamos
+        
+        db.session.delete(component)
+        db.session.commit()
+        flash('Componente eliminado exitosamente', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar componente: {str(e)}', 'danger')
+    return redirect(url_for('admin.hardware'))
