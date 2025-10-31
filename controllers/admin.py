@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
 
+UPLOAD = 'static/uploads'
 admin_bp = Blueprint('admin', __name__)
 
 def admin_required(f):
@@ -80,8 +81,8 @@ def nuevo_juego():
             imagen_path = None
             if imagen and imagen.filename:
                 filename = secure_filename(imagen.filename)
-                imagen.save(os.path.join('static/uploads', filename))
-                imagen_path = f'/static/uploads/{filename}'
+                imagen.save(os.path.join(UPLOAD, filename))
+                imagen_path = (UPLOAD, {filename})
 
             # Crear juego
             juego = Game(
@@ -118,8 +119,8 @@ def editar_juego(game_id):
             imagen = request.files.get('imagen')
             if imagen and imagen.filename:
                 filename = secure_filename(imagen.filename)
-                imagen.save(os.path.join('static/uploads', filename))
-                game.imagen = f'/static/uploads/{filename}'
+                imagen.save(os.path.join(UPLOAD, filename))
+                game.imagen = (UPLOAD, {filename})
 
             # Actualizar datos
             game.nombre = request.form['nombre']
@@ -160,8 +161,8 @@ def nuevo_hardware():
             imagen_path = None
             if imagen and imagen.filename:
                 filename = secure_filename(imagen.filename)
-                imagen.save(os.path.join('static/uploads', filename))
-                imagen_path = f'/static/uploads/{filename}'
+                imagen.save(os.path.join(UPLOAD, filename))
+                imagen_path = (UPLOAD, {filename})
 
             # Crear hardware
             hardware = Hardware(
@@ -196,8 +197,8 @@ def editar_hardware(hardware_id):
             imagen = request.files.get('imagen')
             if imagen and imagen.filename:
                 filename = secure_filename(imagen.filename)
-                imagen.save(os.path.join('static/uploads', filename))
-                component.imagen = f'/static/uploads/{filename}'
+                imagen.save(os.path.join(UPLOAD, filename))
+                component.imagen = (UPLOAD, {filename})
 
             # Actualizar datos
             component.tipo = request.form['tipo']
@@ -255,7 +256,7 @@ def eliminar_juego(game_id):
     game = Game.query.get_or_404(game_id)
     try:
         # Si el juego tiene una imagen, podríamos eliminarla del sistema de archivos aquí
-        if game.imagen and game.imagen.startswith('/static/uploads/'):
+        if game.imagen and game.imagen.startswith(UPLOAD):
             try:
                 os.remove(os.path.join('static', game.imagen.lstrip('/static/')))
             except OSError:
@@ -276,7 +277,7 @@ def eliminar_hardware(hardware_id):
     component = Hardware.query.get_or_404(hardware_id)
     try:
         # Si el componente tiene una imagen, podríamos eliminarla del sistema de archivos aquí
-        if component.imagen and component.imagen.startswith('/static/uploads/'):
+        if component.imagen and component.imagen.startswith(UPLOAD):
             try:
                 os.remove(os.path.join('static', component.imagen.lstrip('/static/')))
             except OSError:
