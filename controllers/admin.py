@@ -11,6 +11,8 @@ import os
 from datetime import datetime
 
 UPLOAD = 'static/uploads'
+ADMIN_JUEGOS = 'admin.juegos'
+
 admin_bp = Blueprint('admin', __name__)
 
 def admin_required(f):
@@ -100,7 +102,7 @@ def nuevo_juego():
             db.session.add(juego)
             db.session.commit()
             flash('Juego creado exitosamente', 'success')
-            return redirect(url_for('admin.juegos'))
+            return redirect(url_for(ADMIN_JUEGOS))
         except Exception as e:
             flash(f'Error al crear juego: {str(e)}', 'danger')
     
@@ -135,7 +137,7 @@ def editar_juego(game_id):
             
             db.session.commit()
             flash('Juego actualizado exitosamente', 'success')
-            return redirect(url_for('admin.juegos'))
+            return redirect(url_for(ADMIN_JUEGOS))
         except Exception as e:
             flash(f'Error al actualizar juego: {str(e)}', 'danger')
     
@@ -267,7 +269,7 @@ def eliminar_juego(game_id):
         flash('Juego eliminado exitosamente', 'success')
     except Exception as e:
         flash(f'Error al eliminar juego: {str(e)}', 'danger')
-    return redirect(url_for('admin.juegos'))
+    return redirect(url_for(ADMIN_JUEGOS))
 
 @admin_bp.route('/admin/hardware/<int:hardware_id>/eliminar', methods=['POST'])
 @login_required
