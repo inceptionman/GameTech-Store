@@ -1,0 +1,39 @@
+# Environment variables
+.env
+
+# Database files
+instance/
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Uploads
+static/uploads/
+
+# Secrets and keys
+secrets.json
+*.key

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Administración - GameTech Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2">
+            <div class="list-group">
+                <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+                <a href="{{ url_for('admin.usuarios') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.usuarios' %}active{% endif %}">
+                    <i class="fas fa-users me-2"></i>Usuarios
+                </a>
+                <a href="{{ url_for('admin.juegos') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.juegos' %}active{% endif %}">
+                    <i class="fas fa-gamepad me-2"></i>Juegos
+                </a>
+                <a href="{{ url_for('admin.hardware') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.hardware' %}active{% endif %}">
+                    <i class="fas fa-microchip me-2"></i>Hardware
+                </a>
+                <a href="{{ url_for('admin.ordenes') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.ordenes' %}active{% endif %}">
+                    <i class="fas fa-shopping-cart me-2"></i>Órdenes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-md-10">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Usuarios</h5>
+                                    <p class="card-text display-6">{{ stats.usuarios }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Juegos</h5>
+                                    <p class="card-text display-6">{{ stats.juegos }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Hardware</h5>
+                                    <p class="card-text display-6">{{ stats.hardware }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Órdenes</h5>
+                                    <p class="card-text display-6">{{ stats.ordenes }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Órdenes Recientes</h4>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Usuario</th>
+                                            <th>Total</th>
+                                            <th>Estado</th>
+                                            <th>Fecha</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for orden in stats.ordenes_recientes %}
+                                        <tr>
+                                            <td>#{{ orden.id }}</td>
+                                            <td>{{ orden.user.username }}</td>
+                                            <td>${{ "%.2f"|format(orden.total) }}</td>
+                                            <td>
+                                                {% if orden.status == 'completed' %}
+                                                    <span class="badge bg-success">Completada</span>
+                                                {% elif orden.status == 'pending' %}
+                                                    <span class="badge bg-warning">Pendiente</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Cancelada</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ orden.created_at.strftime('%d/%m/%Y') }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Usuarios Recientes</h4>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Usuario</th>
+                                            <th>Email</th>
+                                            <th>Fecha Registro</th>
+                                            <th>Rol</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for usuario in stats.usuarios_recientes %}
+                                        <tr>
+                                            <td>{{ usuario.username }}</td>
+                                            <td>{{ usuario.email }}</td>
+                                            <td>{{ usuario.created_at.strftime('%d/%m/%Y') }}</td>
+                                            <td>
+                                                {% if usuario.is_admin %}
+                                                    <span class="badge bg-primary">Admin</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Usuario</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

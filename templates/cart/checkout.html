@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - GameTech Store{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4"><i class="fas fa-credit-card me-2"></i>Finalizar Compra</h2>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0">Información de Envío</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('cart.checkout') }}">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre Completo</label>
+                                <input type="text" class="form-control" value="{{ current_user.username }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" value="{{ current_user.email }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Nota:</strong> Esta es una compra simulada. No se procesará ningún pago real.
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                Acepto los términos y condiciones
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-check me-2"></i>Confirmar Compra
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Resumen de la Orden</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="mb-3">Productos ({{ cart_items|length }})</h6>
+                    {% for item in cart_items %}
+                        {% set product = item.get_product() %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <small>{{ product.nombre if item.product_type == 'game' else (product.marca + ' ' + product.modelo) }} x{{ item.quantity }}</small>
+                            <small>${{ "%.2f"|format(item.get_subtotal()) }}</small>
+                        </div>
+                    {% endfor %}
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>${{ "%.2f"|format(total) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Envío:</span>
+                        <span class="text-success">GRATIS</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>IVA (incluido):</span>
+                        <span>${{ "%.2f"|format(total * 0.16) }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total:</strong>
+                        <strong class="h4 text-success">${{ "%.2f"|format(total) }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mt-3">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-shield-alt text-success me-2"></i>
+                        <strong>Compra Segura</strong>
+                    </div>
+                    <div class="mb-2">
+                        <i class="fas fa-truck text-primary me-2"></i>
+                        <small>Envío gratis en todas las órdenes</small>
+                    </div>
+                    <div>
+                        <i class="fas fa-undo text-info me-2"></i>
+                        <small>Devoluciones en 30 días</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

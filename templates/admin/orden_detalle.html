@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Detalles de Orden #{{ order.id }} - GameTech Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2">
+            <div class="list-group">
+                <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+                <a href="{{ url_for('admin.usuarios') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-users me-2"></i>Usuarios
+                </a>
+                <a href="{{ url_for('admin.juegos') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-gamepad me-2"></i>Juegos
+                </a>
+                <a href="{{ url_for('admin.hardware') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-microchip me-2"></i>Hardware
+                </a>
+                <a href="{{ url_for('admin.ordenes') }}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-shopping-cart me-2"></i>Órdenes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-md-10">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Orden #{{ order.id }}</h4>
+                    <a href="{{ url_for('admin.ordenes') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Información del Cliente</h5>
+                            <p><strong>Usuario:</strong> {{ order.user.username }}</p>
+                            <p><strong>Email:</strong> {{ order.user.email }}</p>
+                            <p><strong>Fecha de Orden:</strong> {{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Estado de la Orden</h5>
+                            <form method="POST" action="{{ url_for('admin.actualizar_estado_orden', order_id=order.id) }}" class="mb-3">
+                                <div class="input-group">
+                                    <select class="form-select" name="status">
+                                        <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pendiente</option>
+                                        <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completada</option>
+                                        <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelada</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary">Actualizar Estado</button>
+                                </div>
+                            </form>
+                            <p><strong>Total:</strong> ${{ "%.2f"|format(order.total) }}</p>
+                        </div>
+                    </div>
+
+                    <h5>Productos</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Tipo</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unit.</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items %}
+                                <tr>
+                                    <td>{{ item.product_name }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'info' if item.product_type == 'game' else 'secondary' }}">
+                                            {{ 'Juego' if item.product_type == 'game' else 'Hardware' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>${{ "%.2f"|format(item.price) }}</td>
+                                    <td>${{ "%.2f"|format(item.get_subtotal()) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                                    <td><strong>${{ "%.2f"|format(order.total) }}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

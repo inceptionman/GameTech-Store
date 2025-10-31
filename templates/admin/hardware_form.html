@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}{% if hardware %}Editar{% else %}Nuevo{% endif %} Hardware - GameTech Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2">
+            <div class="list-group">
+                <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+                <a href="{{ url_for('admin.usuarios') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-users me-2"></i>Usuarios
+                </a>
+                <a href="{{ url_for('admin.juegos') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-gamepad me-2"></i>Juegos
+                </a>
+                <a href="{{ url_for('admin.hardware') }}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-microchip me-2"></i>Hardware
+                </a>
+                <a href="{{ url_for('admin.ordenes') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-shopping-cart me-2"></i>Órdenes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-md-10">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">{% if hardware %}Editar{% else %}Nuevo{% endif %} Componente</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="tipo" class="form-label">Tipo</label>
+                            <select class="form-select" id="tipo" name="tipo" required>
+                                <option value="">Seleccionar tipo...</option>
+                                <option value="CPU" {% if hardware and hardware.tipo == 'CPU' %}selected{% endif %}>Procesador (CPU)</option>
+                                <option value="GPU" {% if hardware and hardware.tipo == 'GPU' %}selected{% endif %}>Tarjeta Gráfica (GPU)</option>
+                                <option value="RAM" {% if hardware and hardware.tipo == 'RAM' %}selected{% endif %}>Memoria RAM</option>
+                                <option value="STORAGE" {% if hardware and hardware.tipo == 'STORAGE' %}selected{% endif %}>Almacenamiento</option>
+                                <option value="MOTHERBOARD" {% if hardware and hardware.tipo == 'MOTHERBOARD' %}selected{% endif %}>Placa Base</option>
+                                <option value="PSU" {% if hardware and hardware.tipo == 'PSU' %}selected{% endif %}>Fuente de Poder</option>
+                                <option value="CASE" {% if hardware and hardware.tipo == 'CASE' %}selected{% endif %}>Gabinete</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="marca" class="form-label">Marca</label>
+                            <input type="text" class="form-control" id="marca" name="marca" required value="{{ hardware.marca if hardware else '' }}">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="modelo" class="form-label">Modelo</label>
+                            <input type="text" class="form-control" id="modelo" name="modelo" required value="{{ hardware.modelo if hardware else '' }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="precio" class="form-label">Precio</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="precio" name="precio" step="0.01" required value="{{ hardware.precio if hardware else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="stock" class="form-label">Stock</label>
+                            <input type="number" class="form-control" id="stock" name="stock" required value="{{ hardware.stock if hardware else '0' }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="imagen" class="form-label">Imagen</label>
+                            <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*" {% if not hardware %}required{% endif %}>
+                            {% if hardware and hardware.imagen %}
+                            <div class="mt-2">
+                                <img src="{{ hardware.imagen }}" alt="{{ hardware.modelo }}" class="img-thumbnail" style="max-height: 100px;">
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required>{{ hardware.descripcion if hardware else '' }}</textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="especificaciones" class="form-label">Especificaciones (JSON)</label>
+                            <textarea class="form-control" id="especificaciones" name="especificaciones" rows="4" required>{{ hardware.especificaciones if hardware else '{}' }}</textarea>
+                            <small class="text-muted">Formato JSON requerido. Ejemplo: {"frecuencia": "3.6GHz", "nucleos": 6}</small>
+                        </div>
+
+                        <div class="col-12">
+                            <a href="{{ url_for('admin.hardware') }}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if hardware %}Actualizar{% else %}Crear{% endif %} Componente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

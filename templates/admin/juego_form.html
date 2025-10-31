@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}{% if game %}Editar{% else %}Nuevo{% endif %} Juego - GameTech Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2">
+            <div class="list-group">
+                <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+                <a href="{{ url_for('admin.usuarios') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-users me-2"></i>Usuarios
+                </a>
+                <a href="{{ url_for('admin.juegos') }}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-gamepad me-2"></i>Juegos
+                </a>
+                <a href="{{ url_for('admin.hardware') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-microchip me-2"></i>Hardware
+                </a>
+                <a href="{{ url_for('admin.ordenes') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-shopping-cart me-2"></i>Órdenes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-md-10">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">{% if game %}Editar{% else %}Nuevo{% endif %} Juego</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" class="row g-3">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required value="{{ game.nombre if game else '' }}">
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label for="precio" class="form-label">Precio</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="precio" name="precio" step="0.01" required value="{{ game.precio if game else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="stock" class="form-label">Stock</label>
+                            <input type="number" class="form-control" id="stock" name="stock" required value="{{ game.stock if game else '0' }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="genero" class="form-label">Género</label>
+                            <input type="text" class="form-control" id="genero" name="genero" required value="{{ game.genero if game else '' }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="desarrollador" class="form-label">Desarrollador</label>
+                            <input type="text" class="form-control" id="desarrollador" name="desarrollador" required value="{{ game.desarrollador if game else '' }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="fecha_lanzamiento" class="form-label">Fecha de Lanzamiento</label>
+                            <input type="date" class="form-control" id="fecha_lanzamiento" name="fecha_lanzamiento" required value="{{ game.fecha_lanzamiento.strftime('%Y-%m-%d') if game and game.fecha_lanzamiento else '' }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="imagen" class="form-label">Imagen</label>
+                            <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*" {% if not game %}required{% endif %}>
+                            {% if game and game.imagen %}
+                            <div class="mt-2">
+                                <img src="{{ game.imagen }}" alt="{{ game.nombre }}" class="img-thumbnail" style="max-height: 100px;">
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required>{{ game.descripcion if game else '' }}</textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="requisitos_minimos" class="form-label">Requisitos Mínimos</label>
+                            <textarea class="form-control" id="requisitos_minimos" name="requisitos_minimos" rows="4" required>{{ game.requisitos_minimos if game else '' }}</textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="requisitos_recomendados" class="form-label">Requisitos Recomendados</label>
+                            <textarea class="form-control" id="requisitos_recomendados" name="requisitos_recomendados" rows="4" required>{{ game.requisitos_recomendados if game else '' }}</textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <a href="{{ url_for('admin.juegos') }}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if game %}Actualizar{% else %}Crear{% endif %} Juego
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

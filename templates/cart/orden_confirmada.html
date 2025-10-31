@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Orden Confirmada - GameTech Store{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-check-circle fa-5x text-success mb-4"></i>
+                    <h2 class="mb-3">¡Compra Realizada con Éxito!</h2>
+                    <p class="lead text-muted mb-4">
+                        Tu orden ha sido procesada correctamente. Recibirás un email de confirmación en breve.
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <strong>Número de Orden:</strong> #{{ order.id }}
+                    </div>
+
+                    <div class="row text-start mt-4">
+                        <div class="col-md-6">
+                            <h5>Detalles de la Orden</h5>
+                            <p class="mb-1"><strong>Fecha:</strong> {{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                            <p class="mb-1"><strong>Estado:</strong> 
+                                <span class="badge bg-success">{{ order.status }}</span>
+                            </p>
+                            <p class="mb-1"><strong>Total:</strong> ${{ "%.2f"|format(order.total) }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Productos ({{ order.items.count() }})</h5>
+                            {% for item in order.items %}
+                                <p class="mb-1 small">
+                                    {{ item.product_name }} x{{ item.quantity }} - ${{ "%.2f"|format(item.get_subtotal()) }}
+                                </p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="{{ url_for('cart.mis_ordenes') }}" class="btn btn-primary">
+                            <i class="fas fa-list me-2"></i>Ver Mis Órdenes
+                        </a>
+                        <a href="{{ url_for('store.tienda') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-shopping-bag me-2"></i>Seguir Comprando
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mt-4">
+                <div class="card-body">
+                    <h5><i class="fas fa-info-circle me-2 text-primary"></i>¿Qué sigue?</h5>
+                    <ul class="mb-0">
+                        <li>Recibirás un email de confirmación con los detalles de tu orden</li>
+                        <li>Tu orden será procesada en las próximas 24 horas</li>
+                        <li>Puedes rastrear tu orden desde tu perfil</li>
+                        <li>El envío es completamente gratis</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
