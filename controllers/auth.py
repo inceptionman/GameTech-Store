@@ -139,28 +139,54 @@ def editar_perfil():
         new_password = request.form.get('new_password')
         
         # Actualizar email
-        if email and email != current_user.email:
-            if User.query.filter_by(email=email).first():
-                flash('El email ya está en uso', 'danger')
-            else:
-                current_user.email = email
-                flash('Email actualizado correctamente', 'success')
+        mensaje_email = actualizar_email(current_user, email)
+        if mensaje_email:
+            flash(*mensaje_email)
         
         # Cambiar contraseña
-        if current_password and new_password:
-            if current_user.check_password(current_password):
-                if len(new_password) >= 8 and re.search(PATTERN_UPPERCASE, new_password) and re.search(PATTERN_LOWERCASE, new_password) and re.search(PATTERN_DIGIT, new_password):
-                    current_user.set_password(new_password)
-                    flash('Contraseña actualizada correctamente', 'success')
-                else:
-                    flash('La nueva contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula y número', 'danger')
-            else:
-                flash('Contraseña actual incorrecta', 'danger')
+        mensaje_password = actualizar_password(current_user, current_password, new_password)
+        if mensaje_password:
+            flash(*mensaje_password)
         
         db.session.commit()
         return redirect(url_for('auth.perfil'))
     
     return render_template('auth/editar_perfil.html', user=current_user)
+
+''''Funcion auxiliar para actualizar email'''
+def actualizar_email(user, nuevo_email):
+    if not nuevo_email or nuevo_email == user.email:
+        return None
+
+    if User.query.filter_by(email=nuevo_email).first():
+        return ('El email ya está en uso', 'danger')
+
+    user.email = nuevo_email
+    return ('Email actualizado correctamente', 'success')
+
+'''Funciion auxiliar para actualizar contrasena'''
+def actualizar_password(user, actual, nueva):
+    if not actual or not nueva:
+        return None
+
+    if not user.check_password(actual):
+        return ('Contraseña actual incorrecta', 'danger')
+
+    if not validar_seguridad_contraseña(nueva):
+        return ('La nueva contraseña debe tener al menos 8 caracteres, '
+                'con mayúscula, minúscula y número', 'danger')
+
+    user.set_password(nueva)
+    return ('Contraseña actualizada correctamente', 'success')
+
+'''Funciion auxiliar para validar seguridad de la contrasena'''
+def validar_seguridad_contraseña(password):
+    return (
+        len(password) >= 8
+        and re.search(PATTERN_UPPERCASE, password)
+        and re.search(PATTERN_LOWERCASE, password)
+        and re.search(PATTERN_DIGIT, password)
+    )
 
 @auth_bp.route('/recuperar-password', methods=['GET', 'POST'])
 def recuperar_password():
@@ -204,76 +230,77 @@ El enlace expirará en 1 hora.
 
 @auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
-    """Página para establecer nueva contraseña"""
+    '''Página para establecer nueva contraseña'''
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    
-    # Intentar recuperar el usuario con reintentos
-    user = None
-    for _ in range(3):  # Intentar hasta 3 veces
-        try:
-            user = User.query.filter_by(reset_token=token).first()
-            if user:
-                break
-        except Exception:
-            db.session.rollback()  # Rollback en caso de error
-            continue
-    
-    if user is None:
+
+    user = obtener_usuario_por_token(token)
+    if not user:
         flash('Error al conectar con la base de datos o token inválido. Por favor, solicita un nuevo enlace.', 'danger')
         return redirect(url_for(AUTH_LOGIN))
-    
-    if user.reset_token_expiry < datetime.now(timezone.utc):
+
+    if token_expirado(user.reset_token_expiry):
         flash('El enlace de recuperación ha expirado. Por favor, solicita uno nuevo.', 'danger')
         return redirect(url_for(AUTH_LOGIN))
 
     if request.method == 'POST':
+        return restablecer_password(user)
+
+    return render_template(RESET_PASSWORD)
+
+'''Intenta obtener un usuario por su token de reseteo, con reintentos en caso de error'''
+def obtener_usuario_por_token(token, reintentos=3):
+    for _ in range(reintentos):
         try:
-            password = request.form.get('password')
-            confirm_password = request.form.get('confirm_password')
-            
-            # Lista para almacenar todos los errores encontrados
-            errors = []
-            
-            # Validar que las contraseñas coincidan
-            if password != confirm_password:
-                errors.append('Las contraseñas no coinciden')
-                
-            # Validar longitud mínima
-            if len(password) < 8:
-                errors.append('La contraseña debe tener al menos 8 caracteres')
-                
-            # Validar mayúscula
-            if not re.search(PATTERN_UPPERCASE, password):
-                errors.append('La contraseña debe contener al menos una letra mayúscula')
-                
-            # Validar minúscula
-            if not re.search(PATTERN_LOWERCASE, password):
-                errors.append('La contraseña debe contener al menos una letra minúscula')
-                
-            # Validar número
-            if not re.search(PATTERN_DIGIT, password):
-                errors.append('La contraseña debe contener al menos un número')
-            
-            # Si hay errores, mostrarlos todos juntos
-            if errors:
-                for error in errors:
-                    flash(error, 'danger')
-                return render_template(RESET_PASSWORD)
-            
-            # Si pasa todas las validaciones, actualizar la contraseña
-            user.set_password(password)
-            user.reset_token = None
-            user.reset_token_expiry = None
-            db.session.commit()
-            
-            flash('Tu contraseña ha sido actualizada correctamente. Ahora puedes iniciar sesión', 'success')
-            return redirect(url_for(AUTH_LOGIN))
-            
+            user = User.query.filter_by(reset_token=token).first()
+            if user:
+                return user
         except Exception:
             db.session.rollback()
-            flash('Ocurrió un error al actualizar la contraseña. Por favor, intenta nuevamente.', 'danger')
+    return None
+
+def token_expirado(expiry_time):
+    return expiry_time < datetime.now(timezone.utc)
+
+'''Procesar el formulario de restablecimiento de contrasenaa'''
+def restablecer_password(user):
+    try:
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        errores = validar_contraseña_reset(password, confirm_password)
+        if errores:
+            for err in errores:
+                flash(err, 'danger')
             return render_template(RESET_PASSWORD)
 
-    # Si es método GET o hubo error en el POST
-    return render_template(RESET_PASSWORD)
+        # Si todo está bien, actualizar y limpiar el token
+        user.set_password(password)
+        user.reset_token = None
+        user.reset_token_expiry = None
+        db.session.commit()
+
+        flash('Tu contraseña ha sido actualizada correctamente. Ahora puedes iniciar sesión.', 'success')
+        return redirect(url_for(AUTH_LOGIN))
+
+    except Exception:
+        db.session.rollback()
+        flash('Ocurrió un error al actualizar la contraseña. Por favor, intenta nuevamente.', 'danger')
+        return render_template(RESET_PASSWORD)
+
+'''Validar reseteo de contrasena'''
+def validar_contraseña_reset(password, confirm_password):
+    errores = []
+
+    if password != confirm_password:
+        errores.append('Las contraseñas no coinciden')
+    if len(password) < 8:
+        errores.append('La contraseña debe tener al menos 8 caracteres')
+    if not re.search(PATTERN_UPPERCASE, password):
+        errores.append('La contraseña debe contener al menos una letra mayúscula')
+    if not re.search(PATTERN_LOWERCASE, password):
+        errores.append('La contraseña debe contener al menos una letra minúscula')
+    if not re.search(PATTERN_DIGIT, password):
+        errores.append('La contraseña debe contener al menos un número')
+
+    return errores   

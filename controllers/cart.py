@@ -28,66 +28,79 @@ def ver_carrito():
 def agregar_al_carrito():
     """Agregar producto al carrito"""
     data = request.get_json() if request.is_json else request.form
-    
+
     product_type = data.get('product_type')
     product_id = int(data.get('product_id'))
     quantity = int(data.get('quantity', 1))
-    
-    if product_type not in ['game', 'hardware']:
-        if request.is_json:
-            return jsonify({'success': False, 'message': 'Tipo de producto inválido'}), 400
-        flash('Tipo de producto inválido', 'danger')
-        return redirect(request.referrer or url_for('index'))
-    
-    # Verificar que el producto existe
-    if product_type == 'game':
-        product = Game.query.get(product_id)
-    else:
-        product = Hardware.query.get(product_id)
-    
+
+    # Validar tipo de producto
+    error = validar_tipo_producto(product_type)
+    if error:
+        return responder_error(error, 400)
+
+    # Obtener producto según tipo
+    product = obtener_producto(product_type, product_id)
     if not product:
-        if request.is_json:
-            return jsonify({'success': False, 'message': 'Producto no encontrado'}), 404
-        flash('Producto no encontrado', 'danger')
-        return redirect(request.referrer or url_for('index'))
-    
-    # Verificar stock
+        return responder_error('Producto no encontrado', 404)
+
+    # Validar stock
     if product.stock < quantity:
-        if request.is_json:
-            return jsonify({'success': False, 'message': STOCK_INSUFICIENTE}), 400
-        flash(STOCK_INSUFICIENTE, 'danger')
-        return redirect(request.referrer or url_for('index'))
-    
-    # Verificar si ya existe en el carrito
+        return responder_error(STOCK_INSUFICIENTE, 400)
+
+    # Agregar o actualizar carrito
+    message = actualizar_carrito(product_type, product_id, quantity)
+    db.session.commit()
+
+    return responder_exito(message)
+
+def validar_tipo_producto(product_type):
+    """Valida que el tipo de producto sea válido."""
+    if product_type not in ['game', 'hardware']:
+        return 'Tipo de producto inválido'
+    return None
+
+def obtener_producto(product_type, product_id):
+    """Obtiene el producto desde la base de datos según su tipo."""
+    if product_type == 'game':
+        return Game.query.get(product_id)
+    elif product_type == 'hardware':
+        return Hardware.query.get(product_id)
+    return None
+
+def actualizar_carrito(product_type, product_id, quantity):
+    """Agrega o actualiza un producto en el carrito del usuario."""
     existing_item = CartItem.query.filter_by(
         user_id=current_user.id,
         product_type=product_type,
         product_id=product_id
     ).first()
-    
+
     if existing_item:
         existing_item.quantity += quantity
-        message = 'Cantidad actualizada en el carrito'
-    else:
-        cart_item = CartItem(
-            user_id=current_user.id,
-            product_type=product_type,
-            product_id=product_id,
-            quantity=quantity
-        )
-        db.session.add(cart_item)
-        message = 'Producto agregado al carrito'
+        return 'Cantidad actualizada en el carrito'
     
-    db.session.commit()
-    
+    nuevo_item = CartItem(
+        user_id=current_user.id,
+        product_type=product_type,
+        product_id=product_id,
+        quantity=quantity
+    )
+    db.session.add(nuevo_item)
+    return 'Producto agregado al carrito'
+
+def responder_error(mensaje, codigo_http):
+    """Devuelve respuesta de error en JSON o HTML según el tipo de petición"""
     if request.is_json:
-        return jsonify({
-            'success': True,
-            'message': message,
-            'cart_count': CartItem.query.filter_by(user_id=current_user.id).count()
-        })
-    
-    flash(message, 'success')
+        return jsonify({'success': False, 'message': mensaje}), codigo_http
+    flash(mensaje, 'danger')
+    return redirect(request.referrer or url_for('index'))
+
+def responder_exito(mensaje):
+    """Devuelve respuesta de éxito en JSON o HTML según el tipo de petición"""
+    if request.is_json:
+        cart_count = CartItem.query.filter_by(user_id=current_user.id).count()
+        return jsonify({'success': True, 'message': mensaje, 'cart_count': cart_count})
+    flash(mensaje, 'success')
     return redirect(request.referrer or url_for('index'))
 
 @cart_bp.route('/carrito/actualizar/<int:item_id>', methods=['POST'])
