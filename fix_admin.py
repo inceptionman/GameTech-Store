@@ -1,5 +1,11 @@
 import sqlite3
 import os
+from dotenv import load_dotenv
+# Cargar variables de entorno desde .env
+load_dotenv()
+
+# Obtener la contraseña de las variables de entorno
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'G@meT3ch2023!')  # Valor por defecto solo para desarrollo
 
 # Asegurarse de que el directorio instance existe
 if not os.path.exists('instance'):
@@ -24,12 +30,12 @@ try:
         cursor.execute('''
             INSERT INTO users (username, email, password_hash, is_admin, is_active)
             VALUES (?, ?, ?, ?, ?)
-        ''', ('admin', 'admin@gametechstore.com', generate_password_hash('admin123'), 1, 1))
+        ''', ('admin', 'admin@gametechstore.com', generate_password_hash(ADMIN_PASSWORD), 1, 1))
     
     conn.commit()
     print("✅ Usuario admin actualizado/creado exitosamente")
     print("Usuario: admin")
-    print("Contraseña: admin123")
+    print("✅ El usuario admin ha sido configurado con éxito")
 
 except sqlite3.Error as e:
     print(f"❌ Error en la base de datos: {str(e)}")
