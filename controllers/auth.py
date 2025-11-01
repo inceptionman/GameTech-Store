@@ -26,48 +26,27 @@ def registro():
     """Página de registro de usuarios"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    
+
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
-        
-        # Validaciones básicas
-        if not username or not email or not password:
-            flash('Todos los campos son obligatorios', 'danger')
+
+        error = validar_datos_registro(username, email, password, confirm_password)
+        if error:
+            flash(error, 'danger')
             return render_template(AUTH_REGISTRO)
-        
-        if password != confirm_password:
-            flash('Las contraseñas no coinciden', 'danger')
-            return render_template(AUTH_REGISTRO)
-        
-        # Validaciones de seguridad para la contraseña
-        if len(password) < 8:
-            flash('La contraseña debe tener al menos 8 caracteres', 'danger')
-            return render_template(AUTH_REGISTRO)
-        
-        if not re.search(PATTERN_UPPERCASE, password):
-            flash('La contraseña debe contener al menos una letra mayúscula', 'danger')
-            return render_template(AUTH_REGISTRO)
-        
-        if not re.search(PATTERN_LOWERCASE, password):
-            flash('La contraseña debe contener al menos una letra minúscula', 'danger')
-            return render_template(AUTH_REGISTRO)
-        
-        if not re.search(PATTERN_DIGIT, password):
-            flash('La contraseña debe contener al menos un número', 'danger')
-            return render_template(AUTH_REGISTRO)
-        
-        # Verificar si el usuario ya existe
+
+        # Verificar si usuario o email ya existen
         if User.query.filter_by(username=username).first():
-            flash('El nombre de usuario ya está en uso', 'danger')
+            flash('El nombre de usuario ya está en uso.', 'danger')
             return render_template(AUTH_REGISTRO)
-        
+
         if User.query.filter_by(email=email).first():
-            flash('El email ya está registrado', 'danger')
+            flash('El email ya está registrado.', 'danger')
             return render_template(AUTH_REGISTRO)
-        
+
         # Crear nuevo usuario con contraseña cifrada
         user = User(username=username, email=email)
         user.set_password(password)
@@ -79,6 +58,29 @@ def registro():
         return redirect(url_for(AUTH_LOGIN))
     
     return render_template(AUTH_REGISTRO)
+
+def validar_datos_registro(username, email, password, confirm_password):
+    """Valida los datos del formulario de registro y devuelve un mensaje de error o None."""
+    if not username or not email or not password:
+        return 'Todos los campos son obligatorios'
+
+    if password != confirm_password:
+        return 'Las contraseñas no coinciden'
+
+    if len(password) < 8:
+        return 'La contraseña debe tener al menos 8 caracteres'
+
+    if not re.search(PATTERN_UPPERCASE, password):
+        return 'La contraseña debe contener al menos una letra mayúscula'
+
+    if not re.search(PATTERN_LOWERCASE, password):
+        return 'La contraseña debe contener al menos una letra minúscula'
+
+    if not re.search(PATTERN_DIGIT, password):
+        return 'La contraseña debe contener al menos un número'
+
+    return None
+        
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
