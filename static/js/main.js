@@ -187,8 +187,8 @@ function initializeProductComparison() {
 
     compareButtons.forEach(button => {
         button.addEventListener('click', function() {
-            const productId = this.getAttribute('data-product-id');
-            const productType = this.getAttribute('data-product-type');
+            // const productId = this.getAttribute('data-product-id');
+            // const productType = this.getAttribute('data-product-type');
 
             // Lógica de comparación (simulada)
             showToast('Producto agregado para comparación', 'info');

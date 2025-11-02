@@ -59,7 +59,7 @@
                     <!-- Los juegos compatibles se cargarán aquí -->
                 </div>
                 <div class="text-center" id="loading-games" style="display: none;">
-                    <div class="spinner-border text-primary" role="status">
+                    <output class="spinner-border text-primary" aria-live="polite">
                         <span class="visually-hidden">Cargando juegos compatibles...</span>
                     </div>
                 </div>
@@ -78,19 +78,19 @@
 
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
-                        <label class="form-label">Tu procesador actual</label>
+                        <label for="current-cpu" class="form-label">Tu procesador actual</label>
                         <input type="text" class="form-control" id="current-cpu" placeholder="Ej: Intel Core i5-10400F">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Tu tarjeta gráfica actual</label>
+                        <label for="current-gpu" class="form-label">Tu tarjeta gráfica actual</label>
                         <input type="text" class="form-control" id="current-gpu" placeholder="Ej: NVIDIA GTX 1660">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Tu memoria RAM</label>
+                        <label for="current-ram" class="form-label">Tu memoria RAM</label>
                         <input type="text" class="form-control" id="current-ram" placeholder="Ej: 16 GB DDR4">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Tu placa base</label>
+                        <label for="current-motherboard" class="form-label">Tu placa base</label>
                         <input type="text" class="form-control" id="current-motherboard" placeholder="Ej: ASUS B450-F">
                     </div>
                 </div>
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         setTimeout(() => {
             if (document.body.contains(toast)) {
-                document.body.removeChild(toast);
+                toast.remove();
             }
         }, 3000);
     }

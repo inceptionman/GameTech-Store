@@ -171,7 +171,7 @@ def actualizar_password(user, actual, nueva):
     if not user.check_password(actual):
         return ('Contraseña actual incorrecta', 'danger')
 
-    if not validar_seguridad_contraseña(nueva):
+    if not validate_password_security(nueva):
         return ('La nueva contraseña debe tener al menos 8 caracteres, '
                 'con mayúscula, minúscula y número', 'danger')
 
@@ -179,7 +179,7 @@ def actualizar_password(user, actual, nueva):
     return ('Contraseña actualizada correctamente', 'success')
 
 '''Funciion auxiliar para validar seguridad de la contrasena'''
-def validar_seguridad_contraseña(password):
+def validate_password_security(password):
     return (
         len(password) >= 8
         and re.search(PATTERN_UPPERCASE, password)
@@ -267,7 +267,7 @@ def restablecer_password(user):
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
 
-        errores = validar_contraseña_reset(password, confirm_password)
+        errores = validate_password_reset(password, confirm_password)
         if errores:
             for err in errores:
                 flash(err, 'danger')
@@ -288,7 +288,7 @@ def restablecer_password(user):
         return render_template(RESET_PASSWORD)
 
 '''Validar reseteo de contrasena'''
-def validar_contraseña_reset(password, confirm_password):
+def validate_password_reset(password, confirm_password):
     errores = []
 
     if password != confirm_password:

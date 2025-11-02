@@ -16,12 +16,12 @@
                     <form method="POST" action="{{ url_for('cart.checkout') }}">
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Nombre Completo</label>
-                                <input type="text" class="form-control" value="{{ current_user.username }}" readonly>
+                                <label for="user-name" class="form-label">Nombre Completo</label>
+                                <input id="user-name"="text" class="form-control" value="{{ current_user.username }}" readonly>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-control" value="{{ current_user.email }}" readonly>
+                                <label for="user-email" class="form-label">Email</label>
+                                <input id="user-email" class="form-control" value="{{ current_user.email }}" readonly>
                             </div>
                         </div>
 

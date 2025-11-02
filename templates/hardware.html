@@ -224,7 +224,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Botones de agregar al carrito
     document.querySelectorAll('.add-hardware-btn').forEach(button => {
         button.addEventListener('click', function() {
-            const hardwareId = this.getAttribute('data-hardware-id');
 
             // Simular agregar al carrito
             const toast = document.createElement('div');
@@ -243,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
             bsToast.show();
 
             setTimeout(() => {
-                document.body.removeChild(toast);
+                toast.remove();
             }, 3000);
         });
     });

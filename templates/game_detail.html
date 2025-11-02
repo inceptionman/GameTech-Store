@@ -82,15 +82,15 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label">Tu CPU</label>
-                        <input type="text" class="form-control" id="user-cpu" placeholder="Ej: Intel Core i5-12400F">
+                        <label for="user-cpu" class="form-label">Tu CPU</label>
+                        <input  type="text" class="form-control" id="user-cpu" placeholder="Ej: Intel Core i5-12400F">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Tu GPU</label>
+                        <label for="user-gpu" class="form-label">Tu GPU</label>
                         <input type="text" class="form-control" id="user-gpu" placeholder="Ej: NVIDIA RTX 4060">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Tu RAM</label>
+                        <label for="user-ram" class="form-label">Tu RAM</label>
                         <input type="text" class="form-control" id="user-ram" placeholder="Ej: 16 GB">
                     </div>
                 </div>
@@ -183,12 +183,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const hardwareSpecs = {
-            cpu: cpu,
-            gpu: gpu,
-            ram: ram
-        };
-
         // Mostrar loading
         const resultDiv = document.getElementById('compatibility-result');
         resultDiv.style.display = 'block';
@@ -233,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         setTimeout(() => {
             if (document.body.contains(toast)) {
-                document.body.removeChild(toast);
+                toast.remove();
             }
         }, 3000);
     }

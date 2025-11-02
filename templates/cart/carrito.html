@@ -41,8 +41,8 @@
                                 </div>
                                 <div class="col-md-3">
                                     <form method="POST" action="{{ url_for('cart.actualizar_cantidad', item_id=item.id) }}" class="d-flex align-items-center">
-                                        <label class="me-2">Cantidad:</label>
-                                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ product.stock }}" class="form-control form-control-sm" style="width: 70px;">
+                                        <label for="amount" class="me-2">Cantidad:</label>
+                                        <input id="amount" type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ product.stock }}" class="form-control form-control-sm" style="width: 70px;">
                                         <button type="submit" class="btn btn-sm btn-outline-primary ms-2">
                                             <i class="fas fa-sync"></i>
                                         </button>
