@@ -1,4 +1,3 @@
-
 """
 Controlador de autenticación
 """
