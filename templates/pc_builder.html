@@ -358,7 +358,7 @@ function checkBuildComplete() {
 
 // Auto-recomendación
 function autoRecommend() {
-    const budget = parseInt(document.getElementById('budget-select').value);
+    const budget = Number.parseInt(document.getElementById('budget-select').value);
     const usage = document.getElementById('usage-select').value;
 
     // Lógica simple de recomendación basada en presupuesto
@@ -424,7 +424,7 @@ function updateRecommendations() {
         `);
     }
 
-    if (currentBuild.RAM && parseInt(currentBuild.RAM.especificaciones.capacidad) >= 16) {
+    if (currentBuild.RAM && Number.parseInt(currentBuild.RAM.especificaciones.capacidad) >= 16) {
         recommendations.push(`
             <div class="col-md-6">
                 <div class="alert alert-info">
