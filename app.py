@@ -117,7 +117,7 @@ def about():
 @app.errorhandler(404)
 def page_not_found(error):
     """Manejador de error 404"""
-    app.logger.warning(f'404 error: {request.url}')
+    app.logger.warning(f'404 error: {request.path}')
     return render_template('404.html'), 404
 
 @app.errorhandler(500)
@@ -140,7 +140,7 @@ def inject_user():
     if current_user.is_authenticated:
         from models.database_models import CartItem
         cart_count = CartItem.query.filter_by(user_id=current_user.id).count()
-    return dict(cart_count=cart_count)
+    return {"cart_count": cart_count}
 
 if __name__ == '__main__':
     # Inicializar la base de datos

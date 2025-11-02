@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCommonFeatures();
 
     // Inicializar funcionalidades específicas según la página
-    const currentPath = window.location.pathname;
+    const currentPath = globalThis.location.pathname;
     if (currentPath === '/' || currentPath === '/index') {
         initializeHomePage();
     } else if (currentPath.startsWith('/tienda')) {
@@ -20,15 +20,15 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function initializeCommonFeatures() {
     // Navbar activa
-    const currentPath = window.location.pathname;
+    const currentPath = globalThis.location.pathname;
     const navLinks = document.querySelectorAll('.nav-link');
 
-    navLinks.forEach(link => {
+    for (const link of navLinks) {
         const href = link.getAttribute('href');
         if (href === currentPath || (href !== '/' && currentPath.startsWith(href))) {
             link.classList.add('active');
         }
-    });
+    }
 
     // Tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -37,8 +37,8 @@ function initializeCommonFeatures() {
     });
 
     // Smooth scroll para enlaces internos
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
+    for (const anchor of document.querySelectorAll('a[href^="#"]')) {
+        anchor.addEventListener('click', function(e) {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
@@ -48,7 +48,7 @@ function initializeCommonFeatures() {
                 });
             }
         });
-    });
+    }
 }
 
 /**
@@ -62,16 +62,16 @@ function initializeHomePage() {
     };
 
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
+        for (const entry of entries) {
             if (entry.isIntersecting) {
                 entry.target.classList.add('fade-in-up');
             }
-        });
+        }
     }, observerOptions);
 
-    document.querySelectorAll('.feature-card').forEach(card => {
+    for (const card of document.querySelectorAll('.feature-card')) {
         observer.observe(card);
-    });
+    }
 
     // Auto-rotación de productos destacados (opcional)
     rotateFeaturedProducts();
@@ -185,14 +185,11 @@ function initializeShoppingCart() {
 function initializeProductComparison() {
     const compareButtons = document.querySelectorAll('.compare-btn');
 
-    compareButtons.forEach(button => {
+    for (const button of compareButtons) {
         button.addEventListener('click', function() {
             // const productId = this.getAttribute('data-product-id');
             // const productType = this.getAttribute('data-product-type');
-
-            // Lógica de comparación (simulada)
-            showToast('Producto agregado para comparación', 'info');
-        });
+            // showToast('Producto agregado para comparación', 'info');
     });
 }
 

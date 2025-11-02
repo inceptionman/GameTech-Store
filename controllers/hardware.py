@@ -46,7 +46,7 @@ def configurador_pc():
 def api_tipos_hardware():
     """API para obtener tipos de hardware disponibles"""
     hardware = Hardware.get_all_hardware()
-    tipos = list(set(componente.tipo for componente in hardware))
+    tipos = list({componente.tipo for componente in hardware})
 
     return jsonify({'tipos': sorted(tipos)})
 
@@ -106,7 +106,7 @@ def comparar_hardware():
         # Agregar especificaciones
         caracteristicas_comunes.update(componente.get_especificaciones().keys())
 
-    caracteristicas_comunes = sorted(list(caracteristicas_comunes))
+    caracteristicas_comunes = sorted(caracteristicas_comunes)
 
     # Crear matriz de comparación
     for caracteristica in caracteristicas_comunes:
