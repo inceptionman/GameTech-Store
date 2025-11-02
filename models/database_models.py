@@ -83,7 +83,7 @@ class Game(db.Model):
     
     @classmethod
     def get_game_by_id(cls, game_id):
-        """Obtener un juego por ID"""
+        """Obtener un juego por id"""
         return cls.query.get(game_id)
     
     @classmethod

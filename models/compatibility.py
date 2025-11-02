@@ -47,7 +47,7 @@ class Compatibility:
             "detalles": [],
             "recomendaciones": [],
             "puntuacion_general": 0,
-            "nivel_rendimiento": ""  # bajo, medio, alto, ultra
+            "nivel_rendimiento": ""  # Bajo, medio, alto, ultra
         }
 
         puntuaciones = []

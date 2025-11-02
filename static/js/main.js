@@ -173,7 +173,7 @@ function initializeShoppingCart() {
 
         setTimeout(() => {
             if (document.body.contains(toast)) {
-                document.body.removeChild(toast);
+                toast.remove();
             }
         }, 3000);
     }
