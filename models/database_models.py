@@ -8,6 +8,7 @@ from sqlalchemy import or_, and_
 import json
 
 CASCADE = 'all, delete-orphan'
+USER_ID = 'user.id'
 
 class User(db.Model):
     """Modelo de usuario"""
@@ -246,7 +247,7 @@ class CartItem(db.Model):
     __tablename__ = 'cart_items'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(USER_ID), nullable=False)
     product_type = db.Column(db.String(20), nullable=False)  # 'game' o 'hardware'
     product_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, default=1)
@@ -457,7 +458,7 @@ class Invoice(db.Model):
             try:
                 last_number = int(last_invoice.folio.split('-')[1])
                 return f'FAC-{last_number + 1:06d}'
-            except:
+            except (IndexError, ValueError):
                 pass
         return 'FAC-000001'
     

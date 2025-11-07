@@ -10,6 +10,10 @@ from utils.invoice_generator import InvoiceGenerator
 import os
 from datetime import datetime
 
+CART_ORDENES = 'cart.mis_ordenes'
+VER_FACTURA = 'invoice.ver_factura'
+SOLICITAR_FACTURA = 'invoice/solicitar_factura.html'
+
 invoice_bp = Blueprint('invoice', __name__)
 
 @invoice_bp.route('/factura/solicitar/<int:order_id>', methods=['GET', 'POST'])
@@ -21,12 +25,12 @@ def solicitar_factura(order_id):
     # Verificar que la orden pertenece al usuario
     if order.user_id != current_user.id:
         flash('No tienes permiso para facturar esta orden', 'danger')
-        return redirect(url_for('cart.mis_ordenes'))
+        return redirect(url_for(CART_ORDENES))
     
     # Verificar si ya tiene factura
     if hasattr(order, 'invoice') and order.invoice:
         flash('Esta orden ya tiene una factura generada', 'info')
-        return redirect(url_for('invoice.ver_factura', invoice_id=order.invoice.id))
+        return redirect(url_for(VER_FACTURA, invoice_id=order.invoice.id))
     
     if request.method == 'POST':
         # Obtener datos fiscales del formulario
@@ -41,12 +45,12 @@ def solicitar_factura(order_id):
         # Validar datos requeridos
         if not rfc or not razon_social:
             flash('RFC y Razón Social son obligatorios', 'danger')
-            return render_template('invoice/solicitar_factura.html', order=order, user=current_user)
+            return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
         
         # Validar formato de RFC (simplificado)
         if len(rfc) not in [12, 13]:
             flash('RFC inválido. Debe tener 12 o 13 caracteres', 'danger')
-            return render_template('invoice/solicitar_factura.html', order=order, user=current_user)
+            return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
         
         try:
             # Guardar datos fiscales en el usuario si lo solicita
@@ -89,15 +93,15 @@ def solicitar_factura(order_id):
             db.session.commit()
             
             flash(f'¡Factura generada exitosamente! Folio: {invoice.folio}', 'success')
-            return redirect(url_for('invoice.ver_factura', invoice_id=invoice.id))
+            return redirect(url_for(VER_FACTURA, invoice_id=invoice.id))
             
         except Exception as e:
             db.session.rollback()
             flash(f'Error al generar la factura: {str(e)}', 'danger')
-            return render_template('invoice/solicitar_factura.html', order=order, user=current_user)
+            return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
     
     # GET - Mostrar formulario
-    return render_template('invoice/solicitar_factura.html', order=order, user=current_user)
+    return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
 
 @invoice_bp.route('/factura/<int:invoice_id>')
 @login_required
@@ -108,7 +112,7 @@ def ver_factura(invoice_id):
     # Verificar que la factura pertenece al usuario
     if invoice.user_id != current_user.id and not current_user.is_admin:
         flash('No tienes permiso para ver esta factura', 'danger')
-        return redirect(url_for('cart.mis_ordenes'))
+        return redirect(url_for(CART_ORDENES))
     
     return render_template('invoice/ver_factura.html', invoice=invoice)
 
@@ -121,12 +125,12 @@ def descargar_factura(invoice_id):
     # Verificar permisos
     if invoice.user_id != current_user.id and not current_user.is_admin:
         flash('No tienes permiso para descargar esta factura', 'danger')
-        return redirect(url_for('cart.mis_ordenes'))
+        return redirect(url_for(CART_ORDENES))
     
     # Verificar que existe el PDF
     if not invoice.pdf_path or not os.path.exists(invoice.pdf_path):
         flash('El PDF de la factura no está disponible', 'danger')
-        return redirect(url_for('invoice.ver_factura', invoice_id=invoice_id))
+        return redirect(url_for(VER_FACTURA, invoice_id=invoice_id))
     
     return send_file(
         invoice.pdf_path,
@@ -155,11 +159,11 @@ def cancelar_factura(invoice_id):
         return jsonify({'error': 'La factura ya está cancelada'}), 400
     
     invoice.status = 'cancelled'
-    invoice.fecha_cancelacion = datetime.utcnow()
+    invoice.fecha_cancelacion = datetime.now()
     db.session.commit()
     
     flash('Factura cancelada exitosamente', 'success')
-    return redirect(url_for('invoice.ver_factura', invoice_id=invoice_id))
+    return redirect(url_for(VER_FACTURA, invoice_id=invoice_id))
 
 # Funciones auxiliares
 def generate_simple_seal(invoice):
