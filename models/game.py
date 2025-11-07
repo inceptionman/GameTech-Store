@@ -1,3 +1,7 @@
+RAM_16_GB = "16 GB"
+STORAGE_70_GB = "70 GB"
+STORAGE_85_GB = "85 GB"
+
 class Game:
     """Modelo para juegos"""
 
@@ -32,13 +36,13 @@ class Game:
                     "CPU": "Intel Core i5-3570K",
                     "RAM": "8 GB",
                     "GPU": "NVIDIA GeForce GTX 780",
-                    "Almacenamiento": "70 GB"
+                    "Almacenamiento": STORAGE_70_GB
                 },
                 requisitos_recomendados={
                     "CPU": "Intel Core i7-4790",
-                    "RAM": "16 GB",
+                    "RAM": RAM_16_GB,
                     "GPU": "NVIDIA GeForce GTX 1060",
-                    "Almacenamiento": "70 GB"
+                    "Almacenamiento": STORAGE_70_GB
                 }
             ),
             Game(
@@ -98,13 +102,13 @@ class Game:
                     "CPU": "Intel Core i5-750",
                     "RAM": "8 GB",
                     "GPU": "NVIDIA GeForce GT 730",
-                    "Almacenamiento": "85 GB"
+                    "Almacenamiento": STORAGE_85_GB
                 },
                 requisitos_recomendados={
                     "CPU": "Intel Core i7-7700K",
-                    "RAM": "16 GB",
+                    "RAM": RAM_16_GB,
                     "GPU": "NVIDIA GeForce RTX 2070",
-                    "Almacenamiento": "85 GB"
+                    "Almacenamiento": STORAGE_85_GB
                 }
             ),
             Game(
@@ -124,7 +128,7 @@ class Game:
                 },
                 requisitos_recomendados={
                     "CPU": "Intel Core i7-8700K",
-                    "RAM": "16 GB",
+                    "RAM": RAM_16_GB,
                     "GPU": "NVIDIA GeForce GTX 1070",
                     "Almacenamiento": "60 GB"
                 }
