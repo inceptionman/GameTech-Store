@@ -328,9 +328,9 @@ function getQualityLabel(quality) {
 function formatMarkdown(text) {
     // Convertir markdown simple a HTML
     return text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/\n/g, '<br>');
+        .replaceAll(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replaceAll(/\n\n/g, '</p><p>')
+        .replaceAll(/\n/g, '<br>');
 }
 
 function showLoading(show) {
