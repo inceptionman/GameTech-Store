@@ -17,7 +17,7 @@
             <div class="card-body">
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <label id="budget-select" class="form-label">Presupuesto Total</label>
+                        <label for="budget-select" class="form-label">Presupuesto Total</label>
                         <select class="form-select form-select-lg" id="budget-select">
                             <option value="800">Básico - $800 (Gaming 1080p básico)</option>
                             <option value="1200" selected>Equilibrado - $1,200 (Gaming 1080p/1440p)</option>
@@ -283,7 +283,7 @@ function selectComponent(tipo) {
             </div>
         `;
         optionsContainer.appendChild(componentCard);
-    });
+    };
 
     modal.show();
 }
@@ -391,7 +391,7 @@ function autoRecommend() {
                 chooseComponent(tipo, recommended.id);
             }
         }
-    });
+    };
 
     updateRecommendations();
 }

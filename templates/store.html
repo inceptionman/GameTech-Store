@@ -53,7 +53,6 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
                         <button class="btn btn-primary w-100" id="check-compatibility-btn">
                             <i class="fas fa-search me-2"></i>Buscar Juegos
                         </button>
@@ -98,7 +97,9 @@
             <h2><i class="fas fa-gamepad me-2"></i>Juegos Disponibles</h2>
         </div>
         <div class="col text-end">
-            <div class="btn-group" role="group">
+            <fieldset class="btn-group">
+            <legend class="visually-hidden">Filtros de juegos</legend>
+
                 <button type="button" class="btn btn-outline-primary active" data-filter="all">Todos</button>
                 <button type="button" class="btn btn-outline-primary" data-filter="RPG">RPG</button>
                 <button type="button" class="btn btn-outline-primary" data-filter="Acción">Acción</button>
