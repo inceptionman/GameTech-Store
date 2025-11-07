@@ -57,7 +57,7 @@
                     <div class="col-md-6">
                         <h6>Mínimos</h6>
                         <ul class="list-unstyled">
-                            {% for requisito, valor in juego.requisitos_minimos.items() %}
+                            {% for requisito, valor in juego.get_requisitos_minimos().items() %}
                             <li><strong>{{ requisito }}:</strong> {{ valor }}</li>
                             {% endfor %}
                         </ul>
@@ -65,7 +65,7 @@
                     <div class="col-md-6">
                         <h6>Recomendados</h6>
                         <ul class="list-unstyled">
-                            {% for requisito, valor in juego.requisitos_recomendados.items() %}
+                            {% for requisito, valor in juego.get_requisitos_recomendados().items() %}
                             <li><strong>{{ requisito }}:</strong> {{ valor }}</li>
                             {% endfor %}
                         </ul>

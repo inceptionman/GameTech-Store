@@ -8,7 +8,7 @@ from sqlalchemy import or_, and_
 import json
 
 CASCADE = 'all, delete-orphan'
-USER_ID = 'user.id'
+USER_ID = 'users.id'
 
 class User(db.Model):
     """Modelo de usuario"""
