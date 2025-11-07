@@ -5,6 +5,8 @@ Ejecutar: python migrations/add_hardware_analysis_tables.py
 import sqlite3
 import os
 
+DEFAULT = 'INTEGER DEFAULT 0'
+
 def migrate():
     """Ejecutar migración de base de datos"""
     # Crear directorio instance si no existe
@@ -73,12 +75,12 @@ def migrate():
         
         # 3. Agregar nuevas columnas a hardware
         columns_to_add = {
-            'benchmark_score': 'INTEGER DEFAULT 0',
-            'vram_gb': 'INTEGER DEFAULT 0',
-            'cores': 'INTEGER DEFAULT 0',
-            'threads': 'INTEGER DEFAULT 0',
+            'benchmark_score': DEFAULT,
+            'vram_gb': DEFAULT,
+            'cores': DEFAULT,
+            'threads': DEFAULT,
             'frequency_ghz': 'REAL DEFAULT 0.0',
-            'tdp_watts': 'INTEGER DEFAULT 0',
+            'tdp_watts': DEFAULT,
             'socket': 'VARCHAR(50)',
             'generation': 'VARCHAR(50)',
             'architecture': 'VARCHAR(100)'

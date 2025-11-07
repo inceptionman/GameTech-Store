@@ -232,7 +232,7 @@ class InvoiceGenerator:
             
             # Crear imagen de ReportLab
             return Image(buffer, width=1.5*inch, height=1.5*inch)
-        except:
+        except ValueError:
             return None
     
     @staticmethod

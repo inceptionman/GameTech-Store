@@ -68,60 +68,58 @@ def update_hardware_benchmarks():
     with app.app_context():
         updated_count = 0
         not_found = []
-        
-        print("="*60)
+
+        def update_hardware_properties(hardware, specs, tipo):
+            props_map = {
+                'CPU': [
+                    ('cores', 0), ('threads', 0),
+                    ('frequency_ghz', 0.0), ('tdp_watts', 0)
+                ],
+                'GPU': [
+                    ('vram_gb', 0), ('tdp_watts', 0)
+                ]
+            }
+            if tipo in props_map:
+                for prop, default in props_map[tipo]:
+                    setattr(hardware, prop, specs.get(prop, default))
+
+        print("=" * 60)
         print("POBLACIÓN DE BENCHMARKS DE HARDWARE")
-        print("="*60)
+        print("=" * 60)
         print()
         
         for tipo, components in BENCHMARK_DATA.items():
             print(f"\n🔧 Procesando {tipo}s...")
-            
             for model_name, specs in components.items():
-                # Buscar componentes que coincidan con el modelo
                 hardware_items = Hardware.query.filter(
                     Hardware.tipo == tipo,
                     Hardware.modelo.ilike(f'%{model_name}%')
                 ).all()
-                
                 if not hardware_items:
                     not_found.append(f"{tipo}: {model_name}")
                     print(f"  ⚠️  No encontrado: {model_name}")
                     continue
-                
                 for hardware in hardware_items:
-                    # Actualizar benchmark score
                     hardware.benchmark_score = specs['score']
-                    
-                    if tipo == 'CPU':
-                        hardware.cores = specs.get('cores', 0)
-                        hardware.threads = specs.get('threads', 0)
-                        hardware.frequency_ghz = specs.get('freq', 0.0)
-                        hardware.tdp_watts = specs.get('tdp', 0)
-                    
-                    elif tipo == 'GPU':
-                        hardware.vram_gb = specs.get('vram', 0)
-                        hardware.tdp_watts = specs.get('tdp', 0)
-                    
+                    update_hardware_properties(hardware, specs, tipo)
                     updated_count += 1
                     print(f"  ✅ {hardware.marca} {hardware.modelo} - Score: {specs['score']}")
         
-        # Guardar cambios
+        # Guardar cambios y mostrar resumen
         try:
             db.session.commit()
-            print("\n" + "="*60)
+            print("\n" + "=" * 60)
             print(f"✅ Total actualizado: {updated_count} componentes")
-            print("="*60)
-            
+            print("=" * 60)
+
             if not_found:
                 print(f"\n⚠️  No se encontraron {len(not_found)} componentes:")
-                for item in not_found[:10]:  # Mostrar solo los primeros 10
+                for item in not_found[:10]:
                     print(f"  - {item}")
                 if len(not_found) > 10:
                     print(f"  ... y {len(not_found) - 10} más")
                 print("\n💡 Estos componentes no están en la base de datos.")
                 print("   Agrégalos primero si deseas incluir sus benchmarks.")
-        
         except Exception as e:
             db.session.rollback()
             print(f"\n❌ Error al guardar cambios: {e}")
