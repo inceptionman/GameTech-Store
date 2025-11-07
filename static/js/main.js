@@ -1,6 +1,8 @@
 // JavaScript principal para GameTech Store
+console.log('=== MAIN.JS CARGADO ===');
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DOMContentLoaded DISPARADO ===');
     // Inicializar funcionalidades comunes
     initializeCommonFeatures();
 
@@ -29,6 +31,9 @@ function initializeCommonFeatures() {
             link.classList.add('active');
         }
     }
+
+    // Inicializar carrito de compras
+    initializeShoppingCart();
 
     // Tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -107,6 +112,7 @@ function initializeGameDetailPage() {
  * Funcionalidad del carrito de compras (simulada)
  */
 function initializeShoppingCart() {
+    console.log('=== initializeShoppingCart LLAMADO ===');
     let cart = JSON.parse(localStorage.getItem('gametech_cart')) || [];
 
     // Actualizar contador del carrito
@@ -114,10 +120,13 @@ function initializeShoppingCart() {
 
     // Manejar clics en botones "Agregar al carrito"
     document.addEventListener('click', function(e) {
+        console.log('Click detectado en:', e.target);
         if (e.target.classList.contains('add-to-cart-btn') || e.target.closest('.add-to-cart-btn')) {
+            console.log('¡Click en botón de carrito!');
             const button = e.target.classList.contains('add-to-cart-btn') ? e.target : e.target.closest('.add-to-cart-btn');
             const productId = button.getAttribute('data-juego-id') || button.getAttribute('data-hardware-id');
             const productType = button.getAttribute('data-juego-id') ? 'game' : 'hardware';
+            console.log('Product ID:', productId, 'Type:', productType);
 
             addToCart(productId, productType);
         }
@@ -136,18 +145,28 @@ function initializeShoppingCart() {
                 quantity: 1
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            // Si la respuesta es una redirección (no autenticado), redirigir al login
+            if (response.redirected) {
+                showToast('Debes iniciar sesión para agregar productos al carrito', 'warning');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return null;
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.success) {
+            if (data && data.success) {
                 updateCartCounter(data.cart_count);
                 showToast(data.message, 'success');
-            } else {
+            } else if (data) {
                 showToast(data.message || 'Error al agregar al carrito', 'danger');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showToast('Error al agregar al carrito', 'danger');
+            showToast('Error al agregar al carrito. Por favor, inicia sesión.', 'danger');
         });
     }
 
@@ -193,7 +212,8 @@ function initializeProductComparison() {
             // const productId = this.getAttribute('data-product-id');
             // const productType = this.getAttribute('data-product-type');
             // showToast('Producto agregado para comparación', 'info');
-    });
+        });
+    }
 }
 
 /**

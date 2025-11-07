@@ -286,28 +286,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Filtros de juegos
     const filterButtons = document.querySelectorAll('[data-filter]');
-        for (const button of filterButtons) {
+    filterButtons.forEach(button => {
         button.addEventListener('click', function() {
             const filter = this.getAttribute('data-filter');
 
             // Actualizar botones activos
-            for (const btn of filterButtons) {
+            filterButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
             this.classList.add('active');
 
             // Filtrar juegos
             const gameCards = document.querySelectorAll('.game-card');
-            for (const card of gameCards) {
+            gameCards.forEach(card => {
                 const genero = card.getAttribute('data-genero');
                 if (filter === 'all' || genero === filter) {
                     card.style.display = 'block';
                 } else {
                     card.style.display = 'none';
                 }
-            };
-        };
+            });
+        });
     });
 
     // Los botones de agregar al carrito son manejados por main.js
-};
+});
 </script>
 {% endblock %}
