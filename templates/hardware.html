@@ -221,32 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    // Botones de agregar al carrito
-    for (const button of document.querySelectorAll('.add-hardware-btn')) {
-
-        button.addEventListener('click', function() {
-
-            // Simular agregar al carrito
-            const toast = document.createElement('div');
-            toast.className = 'toast align-items-center text-white bg-success border-0';
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        Hardware agregado al carrito
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            `;
-
-            document.body.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-        });
-    };
+    // Los botones de agregar al carrito son manejados por main.js
 
     // Scroll suave para navegación por categorías
     if (location.hash) {
