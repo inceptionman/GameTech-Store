@@ -39,9 +39,9 @@ async function analyzeHardware() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                cpu_id: parseInt(cpuId),
-                gpu_id: parseInt(gpuId),
-                ram_id: parseInt(ramId)
+                cpu_id: Number.parseInt(cpuId),
+                gpu_id: Number.parseInt(gpuId),
+                ram_id: Number.parseInt(ramId)
             })
         });
         
