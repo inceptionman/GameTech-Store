@@ -329,8 +329,8 @@ function formatMarkdown(text) {
     // Convertir markdown simple a HTML
     return text
         .replaceAll(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replaceAll(/\n\n/g, '</p><p>')
-        .replaceAll(/\n/g, '<br>');
+        .replaceAll(/\n\n/, '</p><p>')
+        .replaceAll(/\n/, '<br>');
 }
 
 function showLoading(show) {
