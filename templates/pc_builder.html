@@ -359,7 +359,6 @@ function checkBuildComplete() {
 // Auto-recomendación
 function autoRecommend() {
     const budget = Number.parseInt(document.getElementById('budget-select').value);
-    //const usage = document.getElementById('usage-select').value;
 
     // Lógica simple de recomendación basada en presupuesto
     const tipos = ['CPU', 'GPU', 'RAM', 'Motherboard'];
@@ -375,8 +374,7 @@ function autoRecommend() {
                         componentes.find(c => c.marca === 'Intel' && c.modelo.includes('12400'));
                     break;
                 case 'GPU':
-                    recommended = budget >= 2000 ?
-                        componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('4060')) :
+                    recommended = budget >= 2000;
                         componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('4060'));
                     break;
                 case 'RAM':
@@ -465,7 +463,7 @@ function showToast(message, type) {
 
     setTimeout(() => {
         if (document.body.contains(toast)) {
-            document.body.removeChild(toast);
+            toast.remove();
         }
     }, 3000);
 }
