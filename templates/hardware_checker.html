@@ -101,7 +101,7 @@
     <!-- Loading Spinner -->
     <div class="row mb-4 d-none" id="loading-container">
         <div class="col text-center">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" aria-label="Analizando configuración">
                 <span class="visually-hidden">Analizando...</span>
             </div>
             <p class="mt-3 text-muted">Analizando tu configuración...</p>
@@ -160,35 +160,35 @@
                         <ul class="nav nav-tabs mb-3" id="games-tabs" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="ultra-tab" data-bs-toggle="tab" 
-                                        data-bs-target="#ultra-games" type="button">
+                                        data-bs-target="#ultra-games" type="button" role="tab" aria-controls="ultra-games" aria-selected="true">
                                     <i class="fas fa-star text-warning me-1"></i>Ultra
                                     <span class="badge bg-success ms-1" id="ultra-count">0</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="high-tab" data-bs-toggle="tab" 
-                                        data-bs-target="#high-games" type="button">
+                                        data-bs-target="#high-games" type="button" role="tab" aria-controls="high-games" aria-selected="false">
                                     <i class="fas fa-check-circle text-success me-1"></i>Alto
                                     <span class="badge bg-primary ms-1" id="high-count">0</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="medium-tab" data-bs-toggle="tab" 
-                                        data-bs-target="#medium-games" type="button">
+                                        data-bs-target="#medium-games" type="button" role="tab" aria-controls="medium-games" aria-selected="false">
                                     <i class="fas fa-adjust text-warning me-1"></i>Medio
                                     <span class="badge bg-warning ms-1" id="medium-count">0</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="low-tab" data-bs-toggle="tab" 
-                                        data-bs-target="#low-games" type="button">
+                                        data-bs-target="#low-games" type="button" role="tab" aria-controls="low-games" aria-selected="false">
                                     <i class="fas fa-minus-circle text-secondary me-1"></i>Bajo
                                     <span class="badge bg-secondary ms-1" id="low-count">0</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="cannot-tab" data-bs-toggle="tab" 
-                                        data-bs-target="#cannot-games" type="button">
+                                        data-bs-target="#cannot-games" type="button" role="tab" aria-controls="cannot-games" aria-selected="false">
                                     <i class="fas fa-times-circle text-danger me-1"></i>No Puede Correr
                                     <span class="badge bg-danger ms-1" id="cannot-count">0</span>
                                 </button>
