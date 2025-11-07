@@ -124,36 +124,39 @@ function initializeShoppingCart() {
     });
 
     function addToCart(productId, productType) {
-        // Buscar el producto
-        let product = null;
-        if (productType === 'game') {
-            // Buscar en juegos (simulado)
-            product = getGameById(productId);
-        } else {
-            // Buscar en hardware (simulado)
-            product = getHardwareById(productId);
-        }
-
-        if (product) {
-            cart.push({
-                id: productId,
-                type: productType,
-                name: product.nombre || product.modelo,
-                price: product.precio,
-                image: product.imagen
-            });
-
-            localStorage.setItem('gametech_cart', JSON.stringify(cart));
-            updateCartCounter();
-            showToast(`${product.nombre || product.modelo} agregado al carrito`, 'success');
-        }
+        // Hacer petición al servidor para agregar al carrito
+        fetch('/carrito/agregar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                product_type: productType,
+                quantity: 1
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateCartCounter(data.cart_count);
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || 'Error al agregar al carrito', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error al agregar al carrito', 'danger');
+        });
     }
 
-    function updateCartCounter() {
+    function updateCartCounter(count) {
         const cartCounter = document.querySelector('.cart-counter');
         if (cartCounter) {
-            cartCounter.textContent = cart.length;
-            cartCounter.style.display = cart.length > 0 ? 'inline' : 'none';
+            const cartCount = count !== undefined ? count : cart.length;
+            cartCounter.textContent = cartCount;
+            cartCounter.style.display = cartCount > 0 ? 'inline' : 'none';
         }
     }
 

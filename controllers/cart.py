@@ -49,10 +49,14 @@ def agregar_al_carrito():
         return responder_error(STOCK_INSUFICIENTE, 400)
 
     # Agregar o actualizar carrito
-    message = actualizar_carrito(product_type, product_id, quantity)
-    db.session.commit()
-
-    return responder_exito(message)
+    try:
+        message = actualizar_carrito(product_type, product_id, quantity)
+        db.session.commit()
+        return responder_exito(message)
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al agregar al carrito: {e}")
+        return responder_error(f'Error al agregar al carrito: {str(e)}', 500)
 
 def validar_tipo_producto(product_type):
     """Valida que el tipo de producto sea válido."""
