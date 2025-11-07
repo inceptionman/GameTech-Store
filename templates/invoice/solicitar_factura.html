@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitar Factura - GameTech Store{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-invoice me-2"></i>Solicitar Factura
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Información de la orden -->
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-shopping-bag me-2"></i>Orden #{{ order.id }}</h5>
+                        <p class="mb-1"><strong>Fecha:</strong> {{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                        <p class="mb-0"><strong>Total:</strong> ${{ "%.2f"|format(order.total) }}</p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('invoice.solicitar_factura', order_id=order.id) }}">
+                        <h5 class="mb-3">Datos Fiscales</h5>
+                        
+                        <!-- RFC -->
+                        <div class="mb-3">
+                            <label for="rfc" class="form-label">RFC <span class="text-danger">*</span></label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="rfc" 
+                                   name="rfc" 
+                                   value="{{ user.rfc or '' }}"
+                                   maxlength="13"
+                                   required
+                                   placeholder="XAXX010101000">
+                            <small class="text-muted">12 o 13 caracteres</small>
+                        </div>
+
+                        <!-- Razón Social -->
+                        <div class="mb-3">
+                            <label for="razon_social" class="form-label">Razón Social <span class="text-danger">*</span></label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="razon_social" 
+                                   name="razon_social" 
+                                   value="{{ user.razon_social or '' }}"
+                                   required
+                                   placeholder="Nombre o Razón Social">
+                        </div>
+
+                        <!-- Dirección Fiscal -->
+                        <div class="mb-3">
+                            <label for="direccion_fiscal" class="form-label">Dirección Fiscal</label>
+                            <textarea class="form-control" 
+                                      id="direccion_fiscal" 
+                                      name="direccion_fiscal" 
+                                      rows="2"
+                                      placeholder="Calle, Número, Colonia, Ciudad, Estado">{{ user.direccion_fiscal or '' }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <!-- Código Postal -->
+                            <div class="col-md-6 mb-3">
+                                <label for="codigo_postal" class="form-label">Código Postal</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="codigo_postal" 
+                                       name="codigo_postal" 
+                                       value="{{ user.codigo_postal or '' }}"
+                                       maxlength="5"
+                                       placeholder="00000">
+                            </div>
+
+                            <!-- Régimen Fiscal -->
+                            <div class="col-md-6 mb-3">
+                                <label for="regimen_fiscal" class="form-label">Régimen Fiscal</label>
+                                <select class="form-select" id="regimen_fiscal" name="regimen_fiscal">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="601" {% if user.regimen_fiscal == '601' %}selected{% endif %}>601 - General de Ley Personas Morales</option>
+                                    <option value="603" {% if user.regimen_fiscal == '603' %}selected{% endif %}>603 - Personas Morales con Fines no Lucrativos</option>
+                                    <option value="605" {% if user.regimen_fiscal == '605' %}selected{% endif %}>605 - Sueldos y Salarios</option>
+                                    <option value="606" {% if user.regimen_fiscal == '606' %}selected{% endif %}>606 - Arrendamiento</option>
+                                    <option value="612" {% if user.regimen_fiscal == '612' %}selected{% endif %}>612 - Personas Físicas con Actividades Empresariales</option>
+                                    <option value="616" {% if user.regimen_fiscal == '616' %}selected{% endif %}>616 - Sin obligaciones fiscales</option>
+                                    <option value="621" {% if user.regimen_fiscal == '621' %}selected{% endif %}>621 - Incorporación Fiscal</option>
+                                    <option value="625" {% if user.regimen_fiscal == '625' %}selected{% endif %}>625 - Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas</option>
+                                    <option value="626" {% if user.regimen_fiscal == '626' %}selected{% endif %}>626 - Régimen Simplificado de Confianza</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Uso de CFDI -->
+                            <div class="col-md-6 mb-3">
+                                <label for="uso_cfdi" class="form-label">Uso de CFDI</label>
+                                <select class="form-select" id="uso_cfdi" name="uso_cfdi">
+                                    <option value="G01">G01 - Adquisición de mercancías</option>
+                                    <option value="G02">G02 - Devoluciones, descuentos o bonificaciones</option>
+                                    <option value="G03" selected>G03 - Gastos en general</option>
+                                    <option value="I01">I01 - Construcciones</option>
+                                    <option value="I02">I02 - Mobiliario y equipo de oficina</option>
+                                    <option value="I03">I03 - Equipo de transporte</option>
+                                    <option value="I04">I04 - Equipo de cómputo y accesorios</option>
+                                    <option value="P01">P01 - Por definir</option>
+                                </select>
+                            </div>
+
+                            <!-- Forma de Pago -->
+                            <div class="col-md-6 mb-3">
+                                <label for="forma_pago" class="form-label">Forma de Pago</label>
+                                <select class="form-select" id="forma_pago" name="forma_pago">
+                                    <option value="01">01 - Efectivo</option>
+                                    <option value="02">02 - Cheque nominativo</option>
+                                    <option value="03" selected>03 - Transferencia electrónica</option>
+                                    <option value="04">04 - Tarjeta de crédito</option>
+                                    <option value="28">28 - Tarjeta de débito</option>
+                                    <option value="99">99 - Por definir</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Guardar datos -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="guardar_datos" name="guardar_datos" checked>
+                            <label class="form-check-label" for="guardar_datos">
+                                Guardar estos datos para futuras facturas
+                            </label>
+                        </div>
+
+                        <hr>
+
+                        <!-- Resumen -->
+                        <div class="alert alert-light">
+                            <h6>Resumen de Factura:</h6>
+                            <p class="mb-1">Subtotal: ${{ "%.2f"|format(order.total / 1.16) }}</p>
+                            <p class="mb-1">IVA (16%): ${{ "%.2f"|format(order.total - (order.total / 1.16)) }}</p>
+                            <p class="mb-0"><strong>Total: ${{ "%.2f"|format(order.total) }}</strong></p>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('cart.mis_ordenes') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-file-invoice me-2"></i>Generar Factura
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="card shadow mt-3">
+                <div class="card-body">
+                    <h6><i class="fas fa-info-circle me-2 text-info"></i>Información Importante</h6>
+                    <ul class="small mb-0">
+                        <li>La factura se generará inmediatamente después de enviar el formulario</li>
+                        <li>Recibirás un correo electrónico con la factura en formato PDF</li>
+                        <li>Podrás descargar la factura desde tu perfil en cualquier momento</li>
+                        <li>Los datos fiscales deben ser correctos, no se podrán modificar después</li>
+                        <li>La factura incluirá todos los productos de esta orden</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

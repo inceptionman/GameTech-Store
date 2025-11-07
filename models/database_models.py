@@ -23,9 +23,17 @@ class User(db.Model):
     reset_token = db.Column(db.String(100), unique=True, nullable=True)
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
     
+    # Datos fiscales
+    rfc = db.Column(db.String(13), nullable=True)
+    razon_social = db.Column(db.String(200), nullable=True)
+    direccion_fiscal = db.Column(db.String(300), nullable=True)
+    codigo_postal = db.Column(db.String(10), nullable=True)
+    regimen_fiscal = db.Column(db.String(100), nullable=True)
+    
     # Relaciones
     cart_items = db.relationship('CartItem', backref='user', lazy='dynamic', cascade=CASCADE)
     orders = db.relationship('Order', backref='user', lazy='dynamic', cascade=CASCADE)
+    invoices = db.relationship('Invoice', backref='user', lazy='dynamic', cascade=CASCADE)
     
     def set_password(self, password):
         """Establecer contraseña hasheada"""
@@ -147,12 +155,45 @@ class Hardware(db.Model):
     imagen = db.Column(db.String(300))
     especificaciones = db.Column(db.Text)  # JSON string
     stock = db.Column(db.Integer, default=0)
+    
+    # Campos para análisis de rendimiento
+    benchmark_score = db.Column(db.Integer, default=0)
+    vram_gb = db.Column(db.Integer, default=0)
+    cores = db.Column(db.Integer, default=0)
+    threads = db.Column(db.Integer, default=0)
+    frequency_ghz = db.Column(db.Float, default=0.0)
+    tdp_watts = db.Column(db.Integer, default=0)
+    socket = db.Column(db.String(50))
+    generation = db.Column(db.String(50))
+    architecture = db.Column(db.String(100))
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def get_especificaciones(self):
         """Obtener especificaciones como dict"""
         return json.loads(self.especificaciones) if self.especificaciones else {}
+    
+    def get_ram_capacity_gb(self):
+        """Extraer capacidad de RAM en GB"""
+        if self.tipo != 'RAM':
+            return 0
+        
+        specs = self.get_especificaciones()
+        capacity_str = specs.get('capacidad', '8 GB')
+        
+        # Extraer número: "16 GB" -> 16
+        import re
+        match = re.search(r'(\d+)\s*GB', capacity_str, re.IGNORECASE)
+        if match:
+            return int(match.group(1))
+        return 8  # Default
+    
+    def get_vram_gb(self):
+        """Obtener VRAM de GPU"""
+        if self.tipo != 'GPU':
+            return 0
+        return self.vram_gb or 0
     
     @classmethod
     def get_all_hardware(cls):
@@ -266,3 +307,203 @@ class OrderItem(db.Model):
     
     def __repr__(self):
         return f'<OrderItem {self.product_name}>'
+
+
+class GameRequirements(db.Model):
+    """Modelo de requisitos de sistema para juegos"""
+    __tablename__ = 'game_requirements'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('games.id'), nullable=False)
+    
+    # Requisitos Mínimos (1080p Low, 30 FPS)
+    min_cpu_score = db.Column(db.Integer, default=0)
+    min_gpu_score = db.Column(db.Integer, default=0)
+    min_ram_gb = db.Column(db.Integer, default=8)
+    min_vram_gb = db.Column(db.Integer, default=2)
+    
+    # Requisitos Recomendados (1080p High, 60 FPS)
+    rec_cpu_score = db.Column(db.Integer, default=0)
+    rec_gpu_score = db.Column(db.Integer, default=0)
+    rec_ram_gb = db.Column(db.Integer, default=16)
+    rec_vram_gb = db.Column(db.Integer, default=4)
+    
+    # Requisitos Ultra (1440p/4K Ultra, 60+ FPS)
+    ultra_cpu_score = db.Column(db.Integer, default=0)
+    ultra_gpu_score = db.Column(db.Integer, default=0)
+    ultra_ram_gb = db.Column(db.Integer, default=32)
+    ultra_vram_gb = db.Column(db.Integer, default=8)
+    
+    # Otros requisitos
+    storage_gb = db.Column(db.Integer, default=50)
+    directx_version = db.Column(db.String(10), default='DX12')
+    requires_ssd = db.Column(db.Boolean, default=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relación con Game
+    game = db.relationship('Game', backref=db.backref('requirements', uselist=False))
+    
+    @classmethod
+    def get_by_game_id(cls, game_id):
+        """Obtener requisitos por ID de juego"""
+        return cls.query.filter_by(game_id=game_id).first()
+    
+    @classmethod
+    def create_requirements(cls, game_id, **kwargs):
+        """Crear nuevos requisitos"""
+        requirements = cls(game_id=game_id, **kwargs)
+        db.session.add(requirements)
+        db.session.commit()
+        return requirements
+    
+    def to_dict(self):
+        """Convertir a diccionario"""
+        return {
+            'id': self.id,
+            'game_id': self.game_id,
+            'minimum': {
+                'cpu_score': self.min_cpu_score,
+                'gpu_score': self.min_gpu_score,
+                'ram_gb': self.min_ram_gb,
+                'vram_gb': self.min_vram_gb
+            },
+            'recommended': {
+                'cpu_score': self.rec_cpu_score,
+                'gpu_score': self.rec_gpu_score,
+                'ram_gb': self.rec_ram_gb,
+                'vram_gb': self.rec_vram_gb
+            },
+            'ultra': {
+                'cpu_score': self.ultra_cpu_score,
+                'gpu_score': self.ultra_gpu_score,
+                'ram_gb': self.ultra_ram_gb,
+                'vram_gb': self.ultra_vram_gb
+            },
+            'storage_gb': self.storage_gb,
+            'directx_version': self.directx_version,
+            'requires_ssd': self.requires_ssd
+        }
+    
+    def __repr__(self):
+        return f'<GameRequirements for Game {self.game_id}>'
+
+
+class Invoice(db.Model):
+    """Modelo de factura electrónica"""
+    __tablename__ = 'invoices'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(36), unique=True, nullable=False, index=True)
+    folio = db.Column(db.String(50), nullable=False)
+    
+    # Relaciones
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    
+    # Datos fiscales del cliente
+    rfc_receptor = db.Column(db.String(13), nullable=False)
+    razon_social_receptor = db.Column(db.String(200), nullable=False)
+    direccion_fiscal = db.Column(db.String(300))
+    codigo_postal = db.Column(db.String(10))
+    regimen_fiscal = db.Column(db.String(100))
+    uso_cfdi = db.Column(db.String(10), default='G03')  # Gastos en general
+    
+    # Datos fiscales del emisor (GameTech Store)
+    rfc_emisor = db.Column(db.String(13), default='GTS123456789')
+    razon_social_emisor = db.Column(db.String(200), default='GameTech Store SA de CV')
+    
+    # Montos
+    subtotal = db.Column(db.Float, nullable=False)
+    iva = db.Column(db.Float, nullable=False)
+    total = db.Column(db.Float, nullable=False)
+    
+    # Método y forma de pago
+    metodo_pago = db.Column(db.String(10), default='PUE')  # Pago en una sola exhibición
+    forma_pago = db.Column(db.String(10), default='03')  # Transferencia electrónica
+    
+    # Estado y fechas
+    status = db.Column(db.String(20), default='active')  # active, cancelled
+    fecha_emision = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_timbrado = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_cancelacion = db.Column(db.DateTime, nullable=True)
+    
+    # Archivos
+    pdf_path = db.Column(db.String(300))
+    xml_path = db.Column(db.String(300))
+    
+    # Sello digital (simplificado)
+    sello_digital = db.Column(db.Text)
+    cadena_original = db.Column(db.Text)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relación con Order
+    order = db.relationship('Order', backref=db.backref('invoice', uselist=False))
+    
+    @classmethod
+    def generate_uuid(cls):
+        """Generar UUID único para la factura"""
+        import uuid
+        return str(uuid.uuid4())
+    
+    @classmethod
+    def generate_folio(cls):
+        """Generar folio consecutivo"""
+        last_invoice = cls.query.order_by(cls.id.desc()).first()
+        if last_invoice and last_invoice.folio:
+            try:
+                last_number = int(last_invoice.folio.split('-')[1])
+                return f'FAC-{last_number + 1:06d}'
+            except:
+                pass
+        return 'FAC-000001'
+    
+    @classmethod
+    def create_from_order(cls, order, user_fiscal_data):
+        """Crear factura desde una orden"""
+        # Calcular montos
+        subtotal = order.total / 1.16  # Asumiendo IVA del 16%
+        iva = order.total - subtotal
+        
+        invoice = cls(
+            uuid=cls.generate_uuid(),
+            folio=cls.generate_folio(),
+            user_id=order.user_id,
+            order_id=order.id,
+            rfc_receptor=user_fiscal_data.get('rfc'),
+            razon_social_receptor=user_fiscal_data.get('razon_social'),
+            direccion_fiscal=user_fiscal_data.get('direccion_fiscal'),
+            codigo_postal=user_fiscal_data.get('codigo_postal'),
+            regimen_fiscal=user_fiscal_data.get('regimen_fiscal'),
+            uso_cfdi=user_fiscal_data.get('uso_cfdi', 'G03'),
+            subtotal=round(subtotal, 2),
+            iva=round(iva, 2),
+            total=round(order.total, 2),
+            metodo_pago='PUE',
+            forma_pago=user_fiscal_data.get('forma_pago', '03')
+        )
+        
+        return invoice
+    
+    def to_dict(self):
+        """Convertir a diccionario"""
+        return {
+            'id': self.id,
+            'uuid': self.uuid,
+            'folio': self.folio,
+            'rfc_receptor': self.rfc_receptor,
+            'razon_social_receptor': self.razon_social_receptor,
+            'subtotal': self.subtotal,
+            'iva': self.iva,
+            'total': self.total,
+            'status': self.status,
+            'fecha_emision': self.fecha_emision.strftime('%Y-%m-%d %H:%M:%S'),
+            'pdf_path': self.pdf_path,
+            'xml_path': self.xml_path
+        }
+    
+    def __repr__(self):
+        return f'<Invoice {self.folio} - {self.uuid}>'

@@ -74,6 +74,8 @@ from controllers.hardware import hardware_bp
 from controllers.auth import auth_bp
 from controllers.cart import cart_bp
 from controllers.admin import admin_bp
+from controllers.hardware_analyzer import analyzer_bp
+from controllers.invoice import invoice_bp
 
 # Registrar blueprints
 app.register_blueprint(store_bp)
@@ -81,6 +83,8 @@ app.register_blueprint(hardware_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(cart_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(analyzer_bp)
+app.register_blueprint(invoice_bp)
 
 # Configurar logging
 if not app.debug:

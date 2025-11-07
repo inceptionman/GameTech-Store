@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Analizador de Hardware - GameTech Store{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4 fw-bold">
+                <i class="fas fa-microchip me-3"></i>Analizador de Hardware
+            </h1>
+            <p class="lead text-muted">
+                Descubre qué juegos puede correr tu PC y detecta cuellos de botella en tu configuración
+            </p>
+        </div>
+    </div>
+
+    <!-- Selector de Componentes -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-desktop me-2"></i>Selecciona tus Componentes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- CPU -->
+                        <div class="col-md-4">
+                            <label for="cpu-select" class="form-label fw-bold">
+                                <i class="fas fa-microchip text-primary me-2"></i>Procesador (CPU)
+                            </label>
+                            <select class="form-select" id="cpu-select" required>
+                                <option value="">Selecciona tu CPU...</option>
+                                {% for cpu in cpus %}
+                                <option value="{{ cpu.id }}" 
+                                        data-marca="{{ cpu.marca }}" 
+                                        data-modelo="{{ cpu.modelo }}"
+                                        data-score="{{ cpu.benchmark_score or 0 }}">
+                                    {{ cpu.marca }} {{ cpu.modelo }}
+                                    {% if cpu.benchmark_score %}
+                                    (Score: {{ cpu.benchmark_score }})
+                                    {% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- GPU -->
+                        <div class="col-md-4">
+                            <label for="gpu-select" class="form-label fw-bold">
+                                <i class="fas fa-video text-danger me-2"></i>Tarjeta Gráfica (GPU)
+                            </label>
+                            <select class="form-select" id="gpu-select" required>
+                                <option value="">Selecciona tu GPU...</option>
+                                {% for gpu in gpus %}
+                                <option value="{{ gpu.id }}"
+                                        data-marca="{{ gpu.marca }}"
+                                        data-modelo="{{ gpu.modelo }}"
+                                        data-score="{{ gpu.benchmark_score or 0 }}">
+                                    {{ gpu.marca }} {{ gpu.modelo }}
+                                    {% if gpu.benchmark_score %}
+                                    (Score: {{ gpu.benchmark_score }})
+                                    {% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- RAM -->
+                        <div class="col-md-4">
+                            <label for="ram-select" class="form-label fw-bold">
+                                <i class="fas fa-memory text-success me-2"></i>Memoria RAM
+                            </label>
+                            <select class="form-select" id="ram-select" required>
+                                <option value="">Selecciona tu RAM...</option>
+                                {% for ram in rams %}
+                                <option value="{{ ram.id }}"
+                                        data-marca="{{ ram.marca }}"
+                                        data-modelo="{{ ram.modelo }}">
+                                    {{ ram.marca }} {{ ram.modelo }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Botón Analizar -->
+                    <div class="row mt-4">
+                        <div class="col text-center">
+                            <button class="btn btn-primary btn-lg px-5" id="analyze-btn">
+                                <i class="fas fa-search me-2"></i>Analizar Mi PC
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="row mb-4 d-none" id="loading-container">
+        <div class="col text-center">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Analizando...</span>
+            </div>
+            <p class="mt-3 text-muted">Analizando tu configuración...</p>
+        </div>
+    </div>
+
+    <!-- Resultados -->
+    <div id="results-container" class="d-none">
+        
+        <!-- Puntuación del Sistema -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card shadow-sm border-0" id="system-score-card">
+                    <!-- Se llenará con JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Cuellos de Botella -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Análisis de Cuellos de Botella</h5>
+                    </div>
+                    <div class="card-body" id="bottlenecks-container">
+                        <!-- Se llenará con JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recomendaciones -->
+        <div class="row mb-4" id="recommendations-section">
+            <div class="col">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Recomendaciones</h5>
+                    </div>
+                    <div class="card-body" id="recommendations-container">
+                        <!-- Se llenará con JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compatibilidad de Juegos -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-gamepad me-2"></i>Compatibilidad con Juegos</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Tabs -->
+                        <ul class="nav nav-tabs mb-3" id="games-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="ultra-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#ultra-games" type="button">
+                                    <i class="fas fa-star text-warning me-1"></i>Ultra
+                                    <span class="badge bg-success ms-1" id="ultra-count">0</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="high-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#high-games" type="button">
+                                    <i class="fas fa-check-circle text-success me-1"></i>Alto
+                                    <span class="badge bg-primary ms-1" id="high-count">0</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="medium-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#medium-games" type="button">
+                                    <i class="fas fa-adjust text-warning me-1"></i>Medio
+                                    <span class="badge bg-warning ms-1" id="medium-count">0</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="low-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#low-games" type="button">
+                                    <i class="fas fa-minus-circle text-secondary me-1"></i>Bajo
+                                    <span class="badge bg-secondary ms-1" id="low-count">0</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="cannot-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#cannot-games" type="button">
+                                    <i class="fas fa-times-circle text-danger me-1"></i>No Puede Correr
+                                    <span class="badge bg-danger ms-1" id="cannot-count">0</span>
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="games-tab-content">
+                            <div class="tab-pane fade show active" id="ultra-games"></div>
+                            <div class="tab-pane fade" id="high-games"></div>
+                            <div class="tab-pane fade" id="medium-games"></div>
+                            <div class="tab-pane fade" id="low-games"></div>
+                            <div class="tab-pane fade" id="cannot-games"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/hardware_analyzer.js') }}"></script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .component-card {
+        transition: transform 0.2s;
+        cursor: pointer;
+    }
+    
+    .component-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .quality-badge {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .fps-indicator {
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+    
+    .game-card {
+        border-left: 4px solid;
+        margin-bottom: 1rem;
+    }
+    
+    .game-card.ultra { border-left-color: #ffc107; }
+    .game-card.high { border-left-color: #28a745; }
+    .game-card.medium { border-left-color: #fd7e14; }
+    .game-card.low { border-left-color: #6c757d; }
+    .game-card.cannot { border-left-color: #dc3545; }
+    
+    .score-display {
+        font-size: 3rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+{% endblock %}
