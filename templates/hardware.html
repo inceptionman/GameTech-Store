@@ -181,19 +181,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryButtons = document.querySelectorAll('[data-category]');
     const hardwareItems = document.querySelectorAll('.hardware-item');
 
-    categoryButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
+    for (const btn of categoryButtons) {
+    btn.addEventListener('click', function() {
 
-            const category = this.getAttribute('data-category');
+               const category = this.dataset.category;
 
             // Actualizar botones activos
-            categoryButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
+            for (const button of categoryButtons) {
+                    button.classList.remove('active');
+                }            this.classList.add('active');
 
             // Filtrar productos
-            hardwareItems.forEach(item => {
-                const itemCategory = item.getAttribute('data-category');
+            for (const item of hardwareItems) {
+                const itemCategory = item.dataset.category;
                 if (category === 'all' || itemCategory === category) {
                     item.style.display = 'block';
                     // Animación de aparición
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         item.style.display = 'none';
                     }, 300);
                 }
-            });
+            };
 
             // Scroll suave hacia los productos
             const container = document.getElementById('hardware-container');
@@ -219,10 +219,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 container.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
-    });
+    };
 
     // Botones de agregar al carrito
-    document.querySelectorAll('.add-hardware-btn').forEach(button => {
+    for (const button of document.querySelectorAll('.add-hardware-btn')) {
+
         button.addEventListener('click', function() {
 
             // Simular agregar al carrito
@@ -245,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 toast.remove();
             }, 3000);
         });
-    });
+    };
 
     // Scroll suave para navegación por categorías
     if (location.hash) {

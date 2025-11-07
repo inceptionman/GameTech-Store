@@ -258,7 +258,7 @@ function selectComponent(tipo) {
 
     const componentes = componentsData[tipo] || [];
 
-    componentes.forEach(componente => {
+    for (const componente of componentes) {
         const componentCard = document.createElement('div');
         componentCard.className = 'component-option card mb-2';
         componentCard.innerHTML = `
@@ -359,11 +359,11 @@ function checkBuildComplete() {
 // Auto-recomendación
 function autoRecommend() {
     const budget = Number.parseInt(document.getElementById('budget-select').value);
-    const usage = document.getElementById('usage-select').value;
+    //const usage = document.getElementById('usage-select').value;
 
     // Lógica simple de recomendación basada en presupuesto
     const tipos = ['CPU', 'GPU', 'RAM', 'Motherboard'];
-    tipos.forEach(tipo => {
+    for (const tipo of tipos) {
         if (!currentBuild[tipo]) {
             const componentes = componentsData[tipo] || [];
             let recommended;

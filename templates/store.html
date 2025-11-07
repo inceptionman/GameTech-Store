@@ -256,7 +256,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let html = `<div class="col-12 mb-3"><p class="text-muted">Se encontraron ${juegos.length} juego(s) compatible(s) con tu hardware:</p></div>`;
 
-        juegos.forEach(juego => {
+        for (const juego of juegos) {
+
             html += `
                 <div class="col-md-4 col-sm-6">
                     <div class="card h-100">
@@ -277,32 +278,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `;
-        });
+        };
 
         container.innerHTML = html;
     }
 
     // Filtros de juegos
     const filterButtons = document.querySelectorAll('[data-filter]');
-    filterButtons.forEach(button => {
+        for (const button of filterButtons) {
         button.addEventListener('click', function() {
             const filter = this.getAttribute('data-filter');
 
             // Actualizar botones activos
-            filterButtons.forEach(btn => btn.classList.remove('active'));
+            for (const btn of filterButtons) {
             this.classList.add('active');
 
             // Filtrar juegos
             const gameCards = document.querySelectorAll('.game-card');
-            gameCards.forEach(card => {
+            for (const card of gameCards) {
                 const genero = card.getAttribute('data-genero');
                 if (filter === 'all' || genero === filter) {
                     card.style.display = 'block';
                 } else {
                     card.style.display = 'none';
                 }
-            });
-        });
+            };
+        };
     });
 
     // Botones de agregar al carrito (simulados)
@@ -332,6 +333,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 3000);
         });
     });
-});
+};
 </script>
 {% endblock %}

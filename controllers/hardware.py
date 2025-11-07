@@ -46,7 +46,7 @@ def configurador_pc():
 def api_tipos_hardware():
     """API para obtener tipos de hardware disponibles"""
     hardware = Hardware.get_all_hardware()
-    tipos = list({componente.tipo for componente in hardware})
+    tipos = {componente.tipo for componente in hardware}
 
     return jsonify({'tipos': sorted(tipos)})
 
