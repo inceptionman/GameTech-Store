@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a GameTech Store</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #198754;
+            margin-bottom: 10px;
+        }
+        .content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .feature {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .feature-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 20px;
+        }
+        .success-badge {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎮 GameTech Store</div>
+            <h2>¡Cuenta Verificada!</h2>
+            <div class="success-badge">✓ Email Confirmado</div>
+        </div>
+        
+        <div class="content">
+            <p>Hola <strong>{{ username }}</strong>,</p>
+            
+            <p>¡Tu cuenta ha sido verificada exitosamente! Ya eres parte oficial de la comunidad GameTech Store.</p>
+            
+            <h3>¿Qué puedes hacer ahora?</h3>
+            
+            <div class="feature">
+                <div class="feature-icon">🎮</div>
+                <div>
+                    <strong>Comprar Juegos</strong><br>
+                    Explora nuestro catálogo de los mejores juegos
+                </div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">💻</div>
+                <div>
+                    <strong>Hardware Gaming</strong><br>
+                    Encuentra componentes de alta calidad
+                </div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🔍</div>
+                <div>
+                    <strong>Analizador de Hardware</strong><br>
+                    Verifica la compatibilidad de tu PC con los juegos
+                </div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">📄</div>
+                <div>
+                    <strong>Facturación Electrónica</strong><br>
+                    Solicita tus facturas CFDI fácilmente
+                </div>
+            </div>
+            
+            <p style="margin-top: 30px;">¡Gracias por unirte a nosotros! Si tienes alguna pregunta, no dudes en contactarnos.</p>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2024 GameTech Store. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

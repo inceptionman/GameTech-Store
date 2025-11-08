@@ -24,6 +24,11 @@ class User(db.Model):
     reset_token = db.Column(db.String(100), unique=True, nullable=True)
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
     
+    # Verificación de email
+    email_verified = db.Column(db.Boolean, default=False)
+    verification_token = db.Column(db.String(255), unique=True, nullable=True)
+    token_expiry = db.Column(db.DateTime, nullable=True)
+    
     # Datos fiscales
     rfc = db.Column(db.String(13), nullable=True)
     razon_social = db.Column(db.String(200), nullable=True)

@@ -50,6 +50,14 @@
                             <a href="{{ url_for('auth.recuperar_password') }}" class="text-primary">¿Olvidaste tu contraseña?</a>
                         </div>
 
+                        {% if show_resend_link %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Correo no verificado.</strong>
+                            <a href="{{ url_for('auth.resend_verification') }}" class="alert-link">Haz clic aquí para reenviar el correo de verificación</a>
+                        </div>
+                        {% endif %}
+
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión

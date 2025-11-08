@@ -6,6 +6,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
 from extensions import db, mail
 from models.database_models import User
+from utils.email_service import send_verification_email, generate_verification_token, get_token_expiry, send_welcome_email
 import re
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -50,10 +51,20 @@ def registro():
         user = User(username=username, email=email)
         user.set_password(password)
         
+        # Generar token de verificación
+        user.verification_token = generate_verification_token()
+        user.token_expiry = get_token_expiry()
+        user.email_verified = False
+        
         db.session.add(user)
         db.session.commit()
         
-        flash('¡Registro exitoso! Ahora puedes iniciar sesión', 'success')
+        # Enviar correo de verificación
+        if send_verification_email(user.email, user.username, user.verification_token):
+            flash('¡Registro exitoso! Te hemos enviado un correo de verificación. Por favor revisa tu bandeja de entrada.', 'success')
+        else:
+            flash('Registro exitoso, pero hubo un error al enviar el correo de verificación. Contacta al soporte.', 'warning')
+        
         return redirect(url_for(AUTH_LOGIN))
     
     return render_template(AUTH_REGISTRO)
@@ -99,6 +110,11 @@ def login():
         user = User.query.filter_by(username=username).first()
         
         if user and user.check_password(password):
+            # Verificar si el correo está verificado
+            if not user.email_verified:
+                flash('Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.', 'warning')
+                return render_template('auth/login.html', show_resend_link=True, user_email=user.email)
+            
             # Login exitoso
             login_user(user, remember=remember)
             flash(f'¡Bienvenido {user.username}!', 'success')
@@ -302,4 +318,60 @@ def validate_password_reset(password, confirm_password):
     if not re.search(PATTERN_DIGIT, password):
         errores.append('La contraseña debe contener al menos un número')
 
-    return errores   
+    return errores
+
+@auth_bp.route('/verify-email/<token>')
+def verify_email(token):
+    """Verificar correo electrónico del usuario"""
+    user = User.query.filter_by(verification_token=token).first()
+    
+    if not user:
+        flash('Token de verificación inválido.', 'danger')
+        return redirect(url_for('index'))
+    
+    # Verificar si el token ha expirado
+    if user.token_expiry and datetime.now(timezone.utc) > user.token_expiry.replace(tzinfo=timezone.utc):
+        flash('El token de verificación ha expirado. Por favor solicita uno nuevo.', 'warning')
+        return redirect(url_for('auth.resend_verification'))
+    
+    # Verificar el email
+    user.email_verified = True
+    user.verification_token = None
+    user.token_expiry = None
+    db.session.commit()
+    
+    # Enviar correo de bienvenida
+    send_welcome_email(user.email, user.username)
+    
+    flash('¡Tu correo ha sido verificado exitosamente! Ya puedes iniciar sesión.', 'success')
+    return redirect(url_for(AUTH_LOGIN))
+
+@auth_bp.route('/resend-verification', methods=['GET', 'POST'])
+def resend_verification():
+    """Reenviar correo de verificación"""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            flash('No existe una cuenta con ese correo electrónico.', 'danger')
+            return render_template('auth/resend_verification.html')
+        
+        if user.email_verified:
+            flash('Tu correo ya ha sido verificado. Puedes iniciar sesión.', 'info')
+            return redirect(url_for(AUTH_LOGIN))
+        
+        # Generar nuevo token
+        user.verification_token = generate_verification_token()
+        user.token_expiry = get_token_expiry()
+        db.session.commit()
+        
+        # Enviar correo
+        if send_verification_email(user.email, user.username, user.verification_token):
+            flash('Te hemos enviado un nuevo correo de verificación. Por favor revisa tu bandeja de entrada.', 'success')
+        else:
+            flash('Hubo un error al enviar el correo. Por favor intenta más tarde.', 'danger')
+        
+        return redirect(url_for(AUTH_LOGIN))
+    
+    return render_template('auth/resend_verification.html')
