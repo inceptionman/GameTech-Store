@@ -52,14 +52,6 @@ app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hora de sesión permanente
 csrf = CSRFProtect(app)
 app.logger.info('✅ CSRF Protection habilitado')
 
-# Configuración de Flask-Mail
-app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', '587'))
-app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
-
 # Crear directorio de uploads si no existe
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 

@@ -65,7 +65,9 @@ def api_buscar_hardware():
             'modelo': componente.modelo,
             'precio': componente.precio,
             'descripcion': componente.descripcion,
-            'imagen': componente.imagen
+            'imagen': componente.imagen,
+            'especificaciones': componente.get_especificaciones(),
+            'stock': componente.stock
         })
 
     return jsonify({'resultados': hardware_data})

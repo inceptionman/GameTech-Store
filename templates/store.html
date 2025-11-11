@@ -47,7 +47,8 @@
                             <option value="">Seleccionar RAM...</option>
                             {% for componente in hardware %}
                                 {% if componente.tipo == 'RAM' %}
-                                <option value="{{ componente.especificaciones.capacidad }}">{{ componente.marca }} {{ componente.modelo }}</option>
+                                {% set specs = componente.get_especificaciones() %}
+                                <option value="{{ specs.get('capacidad', '') }}">{{ componente.marca }} {{ componente.modelo }}</option>
                                 {% endif %}
                             {% endfor %}
                         </select>
