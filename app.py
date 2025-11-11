@@ -22,15 +22,45 @@ if not secret_key or secret_key == 'dev-secret-key-change-in-production':
     print("⚠️  SECRET_KEY no configurada. Usando clave generada (cámbiala en producción)")
 
 app.config['SECRET_KEY'] = secret_key
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///instance/gametech_store.db')
+# Configurar la base de datos usando ruta absoluta para SQLite y opciones
+from pathlib import Path
+instance_path = Path(__file__).parent / 'instance'
+instance_path.mkdir(exist_ok=True)
+
+# Obtener URL de la BD desde env. Si no existe, usar SQLite local
+db_url = os.environ.get('DATABASE_URL')
+if not db_url:
+    db_file = instance_path / 'gametech_store.db'
+    db_url = f'sqlite:///{db_file}'
+
+# Si la URL es PostgreSQL pero el driver no está disponible, hacer fallback a SQLite
+if db_url and ('postgres' in db_url or db_url.startswith('postgresql')):
+    try:
+        import psycopg  # type: ignore
+    except Exception:
+        try:
+            import psycopg2  # type: ignore
+        except Exception:
+            print("⚠️  PostgreSQL driver no disponible. Usando SQLite local como fallback.")
+            db_file = instance_path / 'gametech_store.db'
+            db_url = f'sqlite:///{db_file}'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_pre_ping': True,  # Verifica la conexión antes de usarla
-    'pool_recycle': 300,    # Recicla conexiones después de 5 minutos
-    'pool_timeout': 30,     # Tiempo de espera para obtener una conexión
-    'pool_size': 10,        # Tamaño máximo del pool de conexiones
-    'max_overflow': 5       # Conexiones adicionales permitidas
-}
+
+# Engine options: usar connect_args para SQLite y pool options para otras DBs
+if db_url.startswith('sqlite'):
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'connect_args': {'check_same_thread': False}
+    }
+else:
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+        'pool_timeout': 30,
+        'pool_size': 10,
+        'max_overflow': 5
+    }
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 

@@ -120,26 +120,27 @@ function initializeShoppingCart() {
 
     // Manejar clics en botones "Agregar al carrito"
     document.addEventListener('click', function(e) {
-        console.log('Click detectado en:', e.target);
-        
-        // Buscar el botón más cercano
-        let button = null;
-        if (e.target.classList.contains('add-to-cart-btn')) {
-            button = e.target;
-        } else {
-            button = e.target.closest('.add-to-cart-btn');
-        }
-        
-        if (button) {
-            console.log('¡Click en botón de carrito!');
-            const productId = button.dataset('data-juego-id') || button.dataset('data-hardware-id');
-            const productType = button.dataset('data-juego-id') ? 'game' : 'hardware';
-            console.log('Product ID:', productId, 'Type:', productType);
+        // Buscar el botón más cercano con la clase usada en templates
+        let button = e.target.closest('.add-to-cart-btn, .add-to-cart');
+        if (!button) return;
 
-            if (productId) {
-                addToCart(productId, productType);
-            }
+        // Obtener posibles atributos de datos: soportar varias convenciones
+        const dataset = button.dataset || {};
+        const productId = dataset.juegoId || dataset.hardwareId || dataset.productId || dataset.product_id;
+        let productType = dataset.juegoId ? 'game' : (dataset.hardwareId ? 'hardware' : (dataset.productType || dataset.product_type || null));
+
+        // Si no logramos inferir, intentar heurística por ruta/atributos
+        if (!productType && productId) {
+            // Si el botón tiene 'data-product-type' en minúsculas
+            productType = dataset.productType || dataset.product_type || null;
         }
+
+        if (!productId) return;
+
+        // Normalizar productId a número cuando sea posible
+        const normalizedId = isNaN(Number(productId)) ? productId : Number(productId);
+
+        addToCart(normalizedId, productType || 'hardware');
     });
 
     function addToCart(productId, productType) {
@@ -238,7 +239,7 @@ function initializeProductComparison() {
  */
 function initializeImageGallery() {
     const galleryImages = document.querySelectorAll('.gallery-image');
-
+ 
     for (const t of galleryImages) {
             t.classList.remove('active');
         }
