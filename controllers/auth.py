@@ -7,6 +7,7 @@ from flask_mail import Message
 from extensions import db, mail
 from models.database_models import User
 from utils.email_service import send_verification_email, generate_verification_token, get_token_expiry, send_welcome_email
+from utils.rate_limiter import limiter, rate_limit_login, rate_limit_register
 import re
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -22,6 +23,7 @@ PATTERN_DIGIT = r'\d'
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/registro', methods=['GET', 'POST'])
+@limiter.limit(rate_limit_register, methods=['POST'])
 def registro():
     """Página de registro de usuarios"""
     if current_user.is_authenticated:
@@ -93,6 +95,7 @@ def validar_datos_registro(username, email, password, confirm_password):
         
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit(rate_limit_login, methods=['POST'])
 def login():
     """Página de inicio de sesión"""
     if current_user.is_authenticated:

@@ -513,3 +513,69 @@ class Invoice(db.Model):
     
     def __repr__(self):
         return f'<Invoice {self.folio} - {self.uuid}>'
+
+
+class Wishlist(db.Model):
+    """Modelo de lista de deseos"""
+    __tablename__ = 'wishlist'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey(USER_ID), nullable=False)
+    product_id = db.Column(db.Integer, nullable=False)
+    product_type = db.Column(db.String(20), nullable=False)  # 'game' or 'hardware'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        """Convertir a diccionario"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'product_id': self.product_id,
+            'product_type': self.product_type,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        }
+    
+    @staticmethod
+    def add_to_wishlist(user_id, product_id, product_type):
+        """Agregar producto a wishlist"""
+        # Verificar si ya existe
+        existing = Wishlist.query.filter_by(
+            user_id=user_id,
+            product_id=product_id,
+            product_type=product_type
+        ).first()
+        
+        if existing:
+            return False, "El producto ya está en tu lista de deseos"
+        
+        wishlist_item = Wishlist(
+            user_id=user_id,
+            product_id=product_id,
+            product_type=product_type
+        )
+        db.session.add(wishlist_item)
+        db.session.commit()
+        return True, "Producto agregado a tu lista de deseos"
+    
+    @staticmethod
+    def remove_from_wishlist(user_id, product_id, product_type):
+        """Remover producto de wishlist"""
+        item = Wishlist.query.filter_by(
+            user_id=user_id,
+            product_id=product_id,
+            product_type=product_type
+        ).first()
+        
+        if item:
+            db.session.delete(item)
+            db.session.commit()
+            return True, "Producto removido de tu lista de deseos"
+        return False, "Producto no encontrado en tu lista de deseos"
+    
+    @staticmethod
+    def get_user_wishlist(user_id):
+        """Obtener wishlist de un usuario"""
+        return Wishlist.query.filter_by(user_id=user_id).all()
+    
+    def __repr__(self):
+        return f'<Wishlist User:{self.user_id} Product:{self.product_id} Type:{self.product_type}>'

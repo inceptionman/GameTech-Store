@@ -48,8 +48,9 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True  # No accesible vía JavaScript
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Protección CSRF básica
 app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hora de sesión permanente
 
-# Inicializar CSRF protection (deshabilitado temporalmente)
-# csrf = CSRFProtect(app)
+# Inicializar CSRF protection
+csrf = CSRFProtect(app)
+app.logger.info('✅ CSRF Protection habilitado')
 
 # Configuración de Flask-Mail
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -66,6 +67,15 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 db.init_app(app)
 mail.init_app(app)
 login_manager.init_app(app)
+
+# Inicializar seguridad y monitoreo
+from utils.rate_limiter import init_limiter
+from utils.security_headers import add_security_headers
+from utils.sentry_config import init_sentry
+
+limiter = init_limiter(app)
+add_security_headers(app)
+init_sentry(app)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -84,6 +94,7 @@ from controllers.cart import cart_bp
 from controllers.admin import admin_bp
 from controllers.hardware_analyzer import analyzer_bp
 from controllers.invoice import invoice_bp
+from controllers.wishlist import wishlist_bp
 
 # Registrar blueprints
 app.register_blueprint(store_bp)
@@ -93,6 +104,7 @@ app.register_blueprint(cart_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(analyzer_bp)
 app.register_blueprint(invoice_bp)
+app.register_blueprint(wishlist_bp)
 
 # Configurar logging
 if not app.debug:

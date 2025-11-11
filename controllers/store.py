@@ -6,10 +6,50 @@ store_bp = Blueprint('store', __name__)
 
 @store_bp.route('/tienda')
 def tienda():
-    """Página principal de la tienda"""
-    juegos = Game.get_all_games()
+    """Página principal de la tienda con paginación"""
+    # Obtener parámetros de paginación
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 12, type=int)
+    
+    # Obtener filtros
+    categoria = request.args.get('categoria', '')
+    precio_min = request.args.get('precio_min', type=float)
+    precio_max = request.args.get('precio_max', type=float)
+    ordenar = request.args.get('ordenar', 'nombre')
+    
+    # Query de juegos
+    juegos_query = Game.query
+    
+    # Aplicar filtros
+    if categoria:
+        juegos_query = juegos_query.filter_by(genero=categoria)
+    if precio_min:
+        juegos_query = juegos_query.filter(Game.precio >= precio_min)
+    if precio_max:
+        juegos_query = juegos_query.filter(Game.precio <= precio_max)
+    
+    # Aplicar ordenamiento
+    if ordenar == 'precio_asc':
+        juegos_query = juegos_query.order_by(Game.precio.asc())
+    elif ordenar == 'precio_desc':
+        juegos_query = juegos_query.order_by(Game.precio.desc())
+    elif ordenar == 'nombre':
+        juegos_query = juegos_query.order_by(Game.nombre.asc())
+    
+    # Paginar
+    juegos_paginados = juegos_query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    # Hardware (sin paginación por ahora)
     hardware = Hardware.get_all_hardware()
-    return render_template('store.html', juegos=juegos, hardware=hardware)
+    
+    return render_template('store.html', 
+                         juegos=juegos_paginados.items,
+                         pagination=juegos_paginados,
+                         hardware=hardware,
+                         categoria=categoria,
+                         precio_min=precio_min,
+                         precio_max=precio_max,
+                         ordenar=ordenar)
 
 @store_bp.route('/juego/<int:juego_id>')
 def juego_detalle(juego_id):
