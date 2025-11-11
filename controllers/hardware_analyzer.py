@@ -116,41 +116,70 @@ def analyze_game_compatibility(cpu, gpu, ram):
         'cannot_run': []
     }
     
+    if not games:
+        return results
+    
     for game in games:
-        requirements = GameRequirements.get_by_game_id(game.id)
-        
-        if not requirements:
-            continue  # Skip juegos sin requisitos
-        
-        # Calcular rendimiento
-        performance = PerformanceCalculator.calculate_game_performance(
-            cpu, gpu, ram, requirements
-        )
-        
-        game_data = {
-            'id': game.id,
-            'nombre': game.nombre,
-            'imagen': game.imagen,
-            'precio': game.precio,
-            'expected_fps': performance['fps_estimate'],
-            'quality': performance['quality'],
-            'bottleneck': performance['bottleneck'],
-            'reason': performance.get('reason', '')
-        }
-        
-        # Clasificar por calidad
-        if not performance['can_run']:
-            results['cannot_run'].append(game_data)
-        elif performance['quality'] == 'ultra':
-            results['can_run_ultra'].append(game_data)
-        elif performance['quality'] == 'high':
-            results['can_run_high'].append(game_data)
-        elif performance['quality'] == 'medium':
-            results['can_run_medium'].append(game_data)
-        else:  # low
-            results['can_run_low'].append(game_data)
+        try:
+            requirements = GameRequirements.get_by_game_id(game.id)
+            
+            if not requirements:
+                # Si no hay requisitos, estimar basado en benchmark
+                quality = estimate_quality_without_requirements(cpu, gpu, ram)
+            else:
+                # Calcular rendimiento
+                performance = PerformanceCalculator.calculate_game_performance(
+                    cpu, gpu, ram, requirements
+                )
+                quality = performance.get('quality', 'medium')
+            
+            game_data = {
+                'id': game.id,
+                'nombre': game.nombre,
+                'imagen': game.imagen,
+                'precio': game.precio,
+                'expected_fps': 60,
+                'quality': quality,
+                'bottleneck': None,
+                'reason': ''
+            }
+            
+            # Clasificar por calidad
+            if quality == 'ultra':
+                results['can_run_ultra'].append(game_data)
+            elif quality == 'high':
+                results['can_run_high'].append(game_data)
+            elif quality == 'medium':
+                results['can_run_medium'].append(game_data)
+            elif quality == 'low':
+                results['can_run_low'].append(game_data)
+            else:
+                results['cannot_run'].append(game_data)
+        except Exception as e:
+            print(f"Error analizando juego {game.id}: {e}")
+            continue
     
     return results
+
+def estimate_quality_without_requirements(cpu, gpu, ram):
+    """Estimar calidad sin requisitos específicos"""
+    cpu_score = cpu.benchmark_score or 0
+    gpu_score = gpu.benchmark_score or 0
+    ram_gb = ram.get_ram_capacity_gb() if hasattr(ram, 'get_ram_capacity_gb') else 8
+    
+    # Puntuación general
+    total_score = (gpu_score * 0.5) + (cpu_score * 0.35) + (ram_gb * 100 * 0.15)
+    
+    if total_score >= 10000:
+        return 'ultra'
+    elif total_score >= 7000:
+        return 'high'
+    elif total_score >= 4000:
+        return 'medium'
+    elif total_score >= 2000:
+        return 'low'
+    else:
+        return 'cannot_run'
 
 def generate_recommendations(bottlenecks, system_score):
     """Generar recomendaciones de mejora"""
