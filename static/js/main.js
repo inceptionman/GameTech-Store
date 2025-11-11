@@ -132,7 +132,7 @@ function initializeShoppingCart() {
         
         if (button) {
             console.log('¡Click en botón de carrito!');
-            const productId = button.dataset('data-juego-id') || button.getAttribute('data-hardware-id');
+            const productId = button.dataset('data-juego-id') || button.dataset('data-hardware-id');
             const productType = button.dataset('data-juego-id') ? 'game' : 'hardware';
             console.log('Product ID:', productId, 'Type:', productType);
 
@@ -193,7 +193,7 @@ function initializeShoppingCart() {
     function updateCartCounter(count) {
         const cartCounter = document.querySelector('.cart-counter');
         if (cartCounter) {
-            const cartCount = typeof count === 'undefined' ? cart.length : count;
+            const cartCount = count === undefined ? cart.length : count;
             cartCounter.textContent = cartCount;
             cartCounter.style.display = cartCount > 0 ? 'inline' : 'none';
         }
@@ -229,9 +229,6 @@ function initializeProductComparison() {
 
     for (const button of compareButtons) {
         button.addEventListener('click', function() {
-            const productId = this.getAttribute('data-product-id');
-            const productType = this.getAttribute('data-product-type');
-            showToast('Producto agregado para comparación', 'info');
         });
     }
 }
@@ -241,7 +238,6 @@ function initializeProductComparison() {
  */
 function initializeImageGallery() {
     const galleryImages = document.querySelectorAll('.gallery-image');
-    const mainimage = document.querySelector('.main-image');
 
     for (const t of galleryImages) {
             t.classList.remove('active');

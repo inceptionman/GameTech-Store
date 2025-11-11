@@ -36,7 +36,7 @@ def test_analyzer():
         gpu = gpus[0]
         ram = rams[0]
         
-        print(f"\n🔧 Hardware seleccionado:")
+        print("\n🔧 Hardware seleccionado:")
         print(f"   CPU: {cpu.marca} {cpu.modelo}")
         print(f"   GPU: {gpu.marca} {gpu.modelo}")
         print(f"   RAM: {ram.marca} {ram.modelo}")
