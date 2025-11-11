@@ -36,7 +36,7 @@ function initializeCommonFeatures() {
     initializeShoppingCart();
 
     // Tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
@@ -120,16 +120,27 @@ function initializeShoppingCart() {
 
     // Manejar clics en botones "Agregar al carrito"
     document.addEventListener('click', function(e) {
-        console.log('Click detectado en:', e.target);
-        if (e.target.classList.contains('add-to-cart-btn') || e.target.closest('.add-to-cart-btn')) {
-            console.log('¡Click en botón de carrito!');
-            const button = e.target.classList.contains('add-to-cart-btn') ? e.target : e.target.closest('.add-to-cart-btn');
-            const productId = button.getAttribute('data-juego-id') || button.getAttribute('data-hardware-id');
-            const productType = button.getAttribute('data-juego-id') ? 'game' : 'hardware';
-            console.log('Product ID:', productId, 'Type:', productType);
+        // Buscar el botón más cercano con la clase usada en templates
+        let button = e.target.closest('.add-to-cart-btn, .add-to-cart');
+        if (!button) return;
 
-            addToCart(productId, productType);
+        // Obtener posibles atributos de datos: soportar varias convenciones
+        const dataset = button.dataset || {};
+        const productId = dataset.juegoId || dataset.hardwareId || dataset.productId || dataset.product_id;
+        let productType = dataset.juegoId ? 'game' : (dataset.hardwareId ? 'hardware' : (dataset.productType || dataset.product_type || null));
+
+        // Si no logramos inferir, intentar heurística por ruta/atributos
+        if (!productType && productId) {
+            // Si el botón tiene 'data-product-type' en minúsculas
+            productType = dataset.productType || dataset.product_type || null;
         }
+
+        if (!productId) return;
+
+        // Normalizar productId a número cuando sea posible
+        const normalizedId = isNaN(Number(productId)) ? productId : Number(productId);
+
+        addToCart(normalizedId, productType || 'hardware');
     });
 
     function addToCart(productId, productType) {
@@ -183,7 +194,7 @@ function initializeShoppingCart() {
     function updateCartCounter(count) {
         const cartCounter = document.querySelector('.cart-counter');
         if (cartCounter) {
-            const cartCount = count !== undefined ? count : cart.length;
+            const cartCount = count === undefined ? cart.length : count;
             cartCounter.textContent = cartCount;
             cartCounter.style.display = cartCount > 0 ? 'inline' : 'none';
         }
@@ -219,9 +230,6 @@ function initializeProductComparison() {
 
     for (const button of compareButtons) {
         button.addEventListener('click', function() {
-            // const productId = this.getAttribute('data-product-id');
-            // const productType = this.getAttribute('data-product-type');
-            // showToast('Producto agregado para comparación', 'info');
         });
     }
 }
@@ -231,15 +239,14 @@ function initializeProductComparison() {
  */
 function initializeImageGallery() {
     const galleryImages = document.querySelectorAll('.gallery-image');
-    const mainImage = document.querySelector('.main-image');
-
+ 
     for (const t of galleryImages) {
             t.classList.remove('active');
         }
 
         this.classList.add('active');
     };
-}
+
 
 /**
  * Sistema de reseñas (simulado)

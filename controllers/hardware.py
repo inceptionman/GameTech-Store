@@ -15,7 +15,7 @@ def lista_hardware():
             categorias[componente.tipo] = []
         categorias[componente.tipo].append(componente)
 
-    return render_template('hardware.html', categorias=categorias)
+    return render_template('hardware.html', hardware=hardware, categorias=categorias)
 
 @hardware_bp.route('/hardware/categoria/<categoria>')
 def hardware_por_categoria(categoria):
