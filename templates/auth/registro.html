@@ -23,6 +23,7 @@
                     {% endwith %}
 
                     <form method="POST" action="{{ url_for('auth.registro') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label for="username" class="form-label text-dark fw-semibold">
                                 <i class="fas fa-user me-2 text-primary"></i>Usuario

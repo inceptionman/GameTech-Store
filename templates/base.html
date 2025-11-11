@@ -9,6 +9,25 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="/static/css/style.css" rel="stylesheet">
     {% block extra_css %}{% endblock %}
+    
+    <script>
+    // Auto-agregar CSRF token a todos los formularios POST
+    document.addEventListener('DOMContentLoaded', function() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            document.querySelectorAll('form[method="POST"], form[method="post"]').forEach(form => {
+                // Verificar si ya tiene el token
+                if (!form.querySelector('input[name="csrf_token"]')) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'csrf_token';
+                    input.value = csrfToken;
+                    form.prepend(input);
+                }
+            });
+        }
+    });
+    </script>
 </head>
 <body>
     <!-- Mensajes Flash -->
