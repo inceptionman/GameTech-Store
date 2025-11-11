@@ -36,7 +36,7 @@ function initializeCommonFeatures() {
     initializeShoppingCart();
 
     // Tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
@@ -132,8 +132,8 @@ function initializeShoppingCart() {
         
         if (button) {
             console.log('¡Click en botón de carrito!');
-            const productId = button.getAttribute('data-juego-id') || button.getAttribute('data-hardware-id');
-            const productType = button.getAttribute('data-juego-id') ? 'game' : 'hardware';
+            const productId = button.dataset('data-juego-id') || button.getAttribute('data-hardware-id');
+            const productType = button.dataset('data-juego-id') ? 'game' : 'hardware';
             console.log('Product ID:', productId, 'Type:', productType);
 
             if (productId) {
@@ -193,7 +193,7 @@ function initializeShoppingCart() {
     function updateCartCounter(count) {
         const cartCounter = document.querySelector('.cart-counter');
         if (cartCounter) {
-            const cartCount = count !== undefined ? count : cart.length;
+            const cartCount = typeof count === 'undefined' ? cart.length : count;
             cartCounter.textContent = cartCount;
             cartCounter.style.display = cartCount > 0 ? 'inline' : 'none';
         }
@@ -229,9 +229,9 @@ function initializeProductComparison() {
 
     for (const button of compareButtons) {
         button.addEventListener('click', function() {
-            // const productId = this.getAttribute('data-product-id');
-            // const productType = this.getAttribute('data-product-type');
-            // showToast('Producto agregado para comparación', 'info');
+            const productId = this.getAttribute('data-product-id');
+            const productType = this.getAttribute('data-product-type');
+            showToast('Producto agregado para comparación', 'info');
         });
     }
 }
@@ -241,7 +241,7 @@ function initializeProductComparison() {
  */
 function initializeImageGallery() {
     const galleryImages = document.querySelectorAll('.gallery-image');
-    const mainImage = document.querySelector('.main-image');
+    const mainimage = document.querySelector('.main-image');
 
     for (const t of galleryImages) {
             t.classList.remove('active');

@@ -24,23 +24,13 @@ if not secret_key or secret_key == 'dev-secret-key-change-in-production':
 app.config['SECRET_KEY'] = secret_key
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///instance/gametech_store.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Configuración de SQLAlchemy - compatible con SQLite y PostgreSQL
-db_uri = app.config['SQLALCHEMY_DATABASE_URI']
-if 'sqlite' in db_uri:
-    # SQLite - opciones mínimas
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'connect_args': {'check_same_thread': False}
-    }
-else:
-    # PostgreSQL u otras BD - opciones completas
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_pre_ping': True,
-        'pool_recycle': 300,
-        'pool_timeout': 30,
-        'pool_size': 10,
-        'max_overflow': 5
-    }
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,  # Verifica la conexión antes de usarla
+    'pool_recycle': 300,    # Recicla conexiones después de 5 minutos
+    'pool_timeout': 30,     # Tiempo de espera para obtener una conexión
+    'pool_size': 10,        # Tamaño máximo del pool de conexiones
+    'max_overflow': 5       # Conexiones adicionales permitidas
+}
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
