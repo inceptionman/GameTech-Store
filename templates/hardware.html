@@ -45,18 +45,18 @@
                 <div class="quick-specs mb-3">
                     {% if componente.tipo == 'CPU' %}
                         <small class="text-muted">
-                            <i class="fas fa-microchip me-1"></i>{{ componente.especificaciones.nucleos }} Núcleos |
-                            <i class="fas fa-tachometer-alt me-1"></i>{{ componente.especificaciones.frecuencia_base }}
+                            <i class="fas fa-microchip me-1"></i>{{ componente.get_especificaciones().get('nucleos', 'N/A') }} Núcleos |
+                            <i class="fas fa-tachometer-alt me-1"></i>{{ componente.get_especificaciones().get('frecuencia_base', 'N/A') }}
                         </small>
                     {% elif componente.tipo == 'GPU' %}
                         <small class="text-muted">
-                            <i class="fas fa-memory me-1"></i>{{ componente.especificaciones.memoria }} |
-                            <i class="fas fa-bolt me-1"></i>{{ componente.especificaciones.consumo }}
+                            <i class="fas fa-memory me-1"></i>{{ componente.get_especificaciones().get('memoria', 'N/A') }} |
+                            <i class="fas fa-bolt me-1"></i>{{ componente.get_especificaciones().get('consumo', 'N/A') }}
                         </small>
                     {% elif componente.tipo == 'RAM' %}
                         <small class="text-muted">
-                            <i class="fas fa-memory me-1"></i>{{ componente.especificaciones.capacidad }} |
-                            <i class="fas fa-tachometer-alt me-1"></i>{{ componente.especificaciones.frecuencia }}
+                            <i class="fas fa-memory me-1"></i>{{ componente.get_especificaciones().get('capacidad', 'N/A') }} |
+                            <i class="fas fa-tachometer-alt me-1"></i>{{ componente.get_especificaciones().get('frecuencia', 'N/A') }}
                         </small>
                     {% endif %}
                 </div>
@@ -70,7 +70,7 @@
                         <a href="/hardware/{{ componente.id }}" class="btn btn-outline-primary flex-fill">
                             <i class="fas fa-eye me-1"></i>Ver
                         </a>
-                        <button class="btn btn-primary flex-fill add-hardware-btn" data-hardware-id="{{ componente.id }}">
+                        <button class="btn btn-primary flex-fill add-to-cart-btn" data-hardware-id="{{ componente.id }}">
                             <i class="fas fa-shopping-cart me-1"></i>Agregar
                         </button>
                     </div>

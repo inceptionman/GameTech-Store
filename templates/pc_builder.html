@@ -378,7 +378,7 @@ function autoRecommend() {
                         componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('4060'));
                     break;
                 case 'RAM':
-                    recommended = componentes.find(c => c.especificaciones && c.especificaciones.capacidad === '16 GB');
+                    recommended = componentes.find(c => c.especificaciones && c.especificaciones.capacidad === '16 GB' || c.modelo.includes('16'));
                     break;
                 case 'Motherboard':
                     recommended = componentes.find(c => c.socket === 'AM4' || c.socket === 'LGA 1700');
@@ -422,15 +422,19 @@ function updateRecommendations() {
         `);
     }
 
-    if (currentBuild.RAM && Number.parseInt(currentBuild.RAM.especificaciones.capacidad) >= 16) {
-        recommendations.push(`
-            <div class="col-md-6">
-                <div class="alert alert-info">
-                    <i class="fas fa-memory me-2"></i>
-                    <strong>Buena cantidad de RAM</strong> para gaming moderno y multitasking.
+    if (currentBuild.RAM && currentBuild.RAM.especificaciones) {
+        const capacidadStr = currentBuild.RAM.especificaciones.capacidad || '';
+        const capacidadGB = parseInt(capacidadStr.match(/\d+/)?.[0] || 0);
+        if (capacidadGB >= 16) {
+            recommendations.push(`
+                <div class="col-md-6">
+                    <div class="alert alert-info">
+                        <i class="fas fa-memory me-2"></i>
+                        <strong>Buena cantidad de RAM</strong> para gaming moderno y multitasking.
+                    </div>
                 </div>
-            </div>
-        `);
+            `);
+        }
     }
 
     container.innerHTML = recommendations.join('');
