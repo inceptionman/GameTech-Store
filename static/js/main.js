@@ -121,14 +121,24 @@ function initializeShoppingCart() {
     // Manejar clics en botones "Agregar al carrito"
     document.addEventListener('click', function(e) {
         console.log('Click detectado en:', e.target);
-        if (e.target.classList.contains('add-to-cart-btn') || e.target.closest('.add-to-cart-btn')) {
+        
+        // Buscar el botón más cercano
+        let button = null;
+        if (e.target.classList.contains('add-to-cart-btn')) {
+            button = e.target;
+        } else {
+            button = e.target.closest('.add-to-cart-btn');
+        }
+        
+        if (button) {
             console.log('¡Click en botón de carrito!');
-            const button = e.target.classList.contains('add-to-cart-btn') ? e.target : e.target.closest('.add-to-cart-btn');
             const productId = button.getAttribute('data-juego-id') || button.getAttribute('data-hardware-id');
             const productType = button.getAttribute('data-juego-id') ? 'game' : 'hardware';
             console.log('Product ID:', productId, 'Type:', productType);
 
-            addToCart(productId, productType);
+            if (productId) {
+                addToCart(productId, productType);
+            }
         }
     });
 
@@ -239,7 +249,7 @@ function initializeImageGallery() {
 
         this.classList.add('active');
     };
-}
+
 
 /**
  * Sistema de reseñas (simulado)
