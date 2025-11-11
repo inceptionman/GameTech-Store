@@ -16,46 +16,64 @@ class BottleneckDetector:
     def detect(cpu, gpu, ram):
         """
         Detectar cuellos de botella.
-
         Args:
             cpu: Objeto Hardware de tipo CPU
             gpu: Objeto Hardware de tipo GPU
             ram: Objeto Hardware de tipo RAM
-
         Returns:
             dict con información del cuello de botella
         """
         result = BottleneckDetector._init_result()
-        cpu_score, gpu_score = cpu.benchmark_score or 0, gpu.benchmark_score or 0
+        cpu_score = cpu.benchmark_score or 0
+        gpu_score = gpu.benchmark_score or 0
         ram_gb = BottleneckDetector._extract_ram_gb(ram)
 
-        if cpu_score == 0 or gpu_score == 0:
-            result['description'] = 'No hay datos de benchmark suficientes para analizar.'
+        if not BottleneckDetector._has_valid_scores(cpu_score, gpu_score, result):
             return result
 
-        def apply_thresholds(ratio, thresholds, is_cpu_bottleneck):
-            for threshold, severity, percent, multiplier, desc, rec in thresholds:
-                if ratio >= threshold:
-                    kind = 'cpu' if is_cpu_bottleneck else 'gpu'
-                    BottleneckDetector._update_result(result, severity, percent, desc, rec, multiplier, cpu_score, gpu_score, kind)
-                    return True
-            return False
-
-        if BottleneckDetector._is_cpu_bottleneck(gpu_score, cpu_score):
-            ratio = gpu_score / cpu_score
-            if apply_thresholds(ratio, BottleneckDetector._cpu_thresholds(), True):
-                result['has_bottleneck'] = True
-                result['type'] = 'cpu'
-        elif BottleneckDetector._is_gpu_bottleneck(gpu_score, cpu_score):
-            ratio = cpu_score / gpu_score
-            if apply_thresholds(ratio, BottleneckDetector._gpu_thresholds(), False):
-                result['has_bottleneck'] = True
-                result['type'] = 'gpu'
-
+        BottleneckDetector._detect_main_bottleneck(cpu_score, gpu_score, result)
         BottleneckDetector._check_ram_bottleneck(result, ram_gb)
         BottleneckDetector._check_balanced(result)
-
         return result
+
+# Métodos auxiliares sugeridos dentro de BottleneckDetector:
+@staticmethod
+def _has_valid_scores(cpu_score, gpu_score, result):
+    if cpu_score == 0 or gpu_score == 0:
+        result['description'] = 'No hay datos de benchmark suficientes para analizar.'
+        return False
+    return True
+
+@staticmethod
+def _detect_main_bottleneck(cpu_score, gpu_score, result):
+    gpu_cpu_ratio = gpu_score / cpu_score if cpu_score else 0
+    cpu_gpu_ratio = cpu_score / gpu_score if gpu_score else 0
+
+    if BottleneckDetector._is_cpu_bottleneck(gpu_score, cpu_score):
+        if BottleneckDetector._apply_thresholds(gpu_cpu_ratio,
+                BottleneckDetector._cpu_thresholds(),
+                result, cpu_score, gpu_score, is_cpu=True):
+            result['has_bottleneck'] = True
+            result['type'] = 'cpu'
+    elif BottleneckDetector._is_gpu_bottleneck(gpu_score, cpu_score):
+        if BottleneckDetector._apply_thresholds(cpu_gpu_ratio,
+                BottleneckDetector._gpu_thresholds(),
+                result, cpu_score, gpu_score, is_cpu=False):
+            result['has_bottleneck'] = True
+            result['type'] = 'gpu'
+
+@staticmethod
+def _apply_thresholds(ratio, thresholds, result, cpu_score, gpu_score, is_cpu):
+    for threshold, severity, percent, multiplier, desc, rec in thresholds:
+        if ratio >= threshold:
+            BottleneckDetector._update_result(
+                result, severity, percent, desc, rec, multiplier, cpu_score, gpu_score, 'cpu' if is_cpu else 'gpu')
+            return True
+    return False
+
+# Los demás métodos auxiliares (_update_result, _cpu_thresholds, _gpu_thresholds, _is_cpu_bottleneck, _is_gpu_bottleneck, _check_ram_bottleneck, _check_balanced)
+# permanecen como en tu versión previa.
+
 
     # Métodos auxiliares sugeridos como métodos estáticos:
     @staticmethod
