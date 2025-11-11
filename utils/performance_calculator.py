@@ -128,19 +128,15 @@ class PerformanceCalculator:
             req_cpu = req.min_cpu_score
             req_gpu = req.min_gpu_score
             req_ram = req.min_ram_gb
-        elif level == 'high':
-            req_cpu = req.rec_cpu_score
-            req_gpu = req.rec_gpu_score
-            req_ram = req.rec_ram_gb
         elif level == 'ultra':
             req_cpu = req.ultra_cpu_score
             req_gpu = req.ultra_gpu_score
             req_ram = req.ultra_ram_gb
-        else:
+        else:  
             req_cpu = req.rec_cpu_score
             req_gpu = req.rec_gpu_score
             req_ram = req.rec_ram_gb
-        
+
         if req_cpu == 0 or req_gpu == 0:
             return None
         

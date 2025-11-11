@@ -70,26 +70,38 @@
                     <div class="table-responsive mb-4">
                         <table class="table table-bordered">
                             <tr>
+                                <th>Campo</th>
+                                <th>Valor</th>
+                            </tr>
+                            <tr>
                                 <td class="bg-light"><strong>Folio:</strong></td>
                                 <td>{{ invoice.folio }}</td>
+                            </tr>
+                            <tr>
                                 <td class="bg-light"><strong>UUID:</strong></td>
                                 <td><small>{{ invoice.uuid }}</small></td>
                             </tr>
                             <tr>
                                 <td class="bg-light"><strong>Fecha Emisión:</strong></td>
                                 <td>{{ invoice.fecha_emision.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                            </tr>
+                            <tr>
                                 <td class="bg-light"><strong>Fecha Timbrado:</strong></td>
                                 <td>{{ invoice.fecha_timbrado.strftime('%d/%m/%Y %H:%M:%S') }}</td>
                             </tr>
                             <tr>
                                 <td class="bg-light"><strong>Método de Pago:</strong></td>
                                 <td>PUE - Pago en una exhibición</td>
+                            </tr>
+                            <tr>
                                 <td class="bg-light"><strong>Forma de Pago:</strong></td>
                                 <td>{{ invoice.forma_pago }}</td>
                             </tr>
                             <tr>
                                 <td class="bg-light"><strong>Uso de CFDI:</strong></td>
                                 <td>{{ invoice.uso_cfdi }}</td>
+                            </tr>
+                            <tr>
                                 <td class="bg-light"><strong>Moneda:</strong></td>
                                 <td>MXN - Peso Mexicano</td>
                             </tr>
@@ -125,6 +137,10 @@
                     <div class="row">
                         <div class="col-md-6 offset-md-6">
                             <table class="table">
+                                <tr>
+                                    <th class="text-end">Concepto</th>
+                                    <th class="text-end">Monto</th>
+                                </tr>
                                 <tr>
                                     <td class="text-end"><strong>Subtotal:</strong></td>
                                     <td class="text-end">${{ "%.2f"|format(invoice.subtotal) }}</td>
