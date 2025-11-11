@@ -44,19 +44,37 @@
                 <!-- Especificaciones rápidas -->
                 <div class="quick-specs mb-3">
                     {% if componente.tipo == 'CPU' %}
+                        {% set specs = componente.get_especificaciones() %}
                         <small class="text-muted">
+<<<<<<< HEAD
                             <i class="fas fa-microchip me-1"></i>{{ componente.get_especificaciones().get('nucleos', 'N/A') }} Núcleos |
                             <i class="fas fa-tachometer-alt me-1"></i>{{ componente.get_especificaciones().get('frecuencia_base', 'N/A') }}
+=======
+                            <i class="fas fa-microchip me-1"></i>{{ specs.get('nucleos', 'N/A') }} Núcleos |
+                            <i class="fas fa-tachometer-alt me-1"></i>{{ specs.get('frecuencia_base', 'N/A') }}
+>>>>>>> 96ead5be43a215a8642f49b7790eec123c9c92a8
                         </small>
                     {% elif componente.tipo == 'GPU' %}
+                        {% set specs = componente.get_especificaciones() %}
                         <small class="text-muted">
+<<<<<<< HEAD
                             <i class="fas fa-memory me-1"></i>{{ componente.get_especificaciones().get('memoria', 'N/A') }} |
                             <i class="fas fa-bolt me-1"></i>{{ componente.get_especificaciones().get('consumo', 'N/A') }}
+=======
+                            <i class="fas fa-memory me-1"></i>{{ specs.get('memoria', 'N/A') }} |
+                            <i class="fas fa-bolt me-1"></i>{{ specs.get('consumo', 'N/A') }}
+>>>>>>> 96ead5be43a215a8642f49b7790eec123c9c92a8
                         </small>
                     {% elif componente.tipo == 'RAM' %}
+                        {% set specs = componente.get_especificaciones() %}
                         <small class="text-muted">
+<<<<<<< HEAD
                             <i class="fas fa-memory me-1"></i>{{ componente.get_especificaciones().get('capacidad', 'N/A') }} |
                             <i class="fas fa-tachometer-alt me-1"></i>{{ componente.get_especificaciones().get('frecuencia', 'N/A') }}
+=======
+                            <i class="fas fa-memory me-1"></i>{{ specs.get('capacidad', 'N/A') }} |
+                            <i class="fas fa-tachometer-alt me-1"></i>{{ specs.get('frecuencia', 'N/A') }}
+>>>>>>> 96ead5be43a215a8642f49b7790eec123c9c92a8
                         </small>
                     {% endif %}
                 </div>
