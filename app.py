@@ -7,17 +7,12 @@ from dotenv import load_dotenv
 import secrets
 from flask_wtf.csrf import CSRFProtect
 from extensions import db, mail, login_manager
-from pathlib import Path
 
 # Cargar variables de entorno
 load_dotenv()
 
 # Crear la aplicación Flask
 app = Flask(__name__)
-
-# Asegurar que la carpeta 'instance' existe
-instance_path = Path(__file__).parent / 'instance'
-instance_path.mkdir(exist_ok=True)
 
 # Configuración de la aplicación
 secret_key = os.environ.get('SECRET_KEY')
@@ -27,15 +22,7 @@ if not secret_key or secret_key == 'dev-secret-key-change-in-production':
     print("⚠️  SECRET_KEY no configurada. Usando clave generada (cámbiala en producción)")
 
 app.config['SECRET_KEY'] = secret_key
-
-# Configurar DATABASE_URL - usar ruta absoluta para SQLite
-db_url = os.environ.get('DATABASE_URL')
-if not db_url or db_url.startswith('sqlite'):
-    # Usar ruta absoluta para SQLite
-    db_file = instance_path / 'gametech_store.db'
-    db_url = f'sqlite:///{db_file}'
-
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///instance/gametech_store.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Configuración de SQLAlchemy - compatible con SQLite y PostgreSQL
