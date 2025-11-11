@@ -133,12 +133,22 @@ function initializeShoppingCart() {
     });
 
     function addToCart(productId, productType) {
+        // Obtener CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
         // Hacer petición al servidor para agregar al carrito
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        
+        // Agregar CSRF token si existe
+        if (csrfToken) {
+            headers['X-CSRFToken'] = csrfToken;
+        }
+        
         fetch('/carrito/agregar', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: headers,
             body: JSON.stringify({
                 product_id: productId,
                 product_type: productType,

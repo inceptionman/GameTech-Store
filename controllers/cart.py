@@ -4,6 +4,7 @@ Controlador del carrito de compras
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
+from flask_wtf.csrf import CSRFProtect
 from database import db
 from models.database_models import CartItem, Game, Hardware, Order, OrderItem
 
@@ -28,6 +29,8 @@ def ver_carrito():
 @login_required
 def agregar_al_carrito():
     """Agregar producto al carrito"""
+    # CSRF está manejado automáticamente por Flask-WTF
+    # Para peticiones JSON, el token debe estar en el header X-CSRFToken
     data = request.get_json() if request.is_json else request.form
 
     product_type = data.get('product_type')
