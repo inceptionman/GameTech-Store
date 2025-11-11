@@ -5,6 +5,8 @@ Agrega tablas y campos del sistema de análisis de hardware
 import sys
 import os
 
+
+
 # Agregar el directorio raíz al path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -70,13 +72,14 @@ def migrate():
             existing_columns = [row[0] for row in result]
             
             # 3. Agregar nuevas columnas a hardware
+            DEFAULT = 'INTEGER DEFAULT 0'
             columns_to_add = {
-                'benchmark_score': 'INTEGER DEFAULT 0',
-                'vram_gb': 'INTEGER DEFAULT 0',
-                'cores': 'INTEGER DEFAULT 0',
-                'threads': 'INTEGER DEFAULT 0',
+                'benchmark_score': DEFAULT,
+                'vram_gb': DEFAULT,
+                'cores': DEFAULT,
+                'threads': DEFAULT,
                 'frequency_ghz': 'REAL DEFAULT 0.0',
-                'tdp_watts': 'INTEGER DEFAULT 0',
+                'tdp_watts': DEFAULT,
                 'socket': 'VARCHAR(50)',
                 'generation': 'VARCHAR(50)',
                 'architecture': 'VARCHAR(100)'

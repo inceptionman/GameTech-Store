@@ -44,3 +44,6 @@ Flask-Limiter==4.0.0
 # Monitoreo y Error Tracking
 sentry-sdk==2.43.0
 
+reportlab==4.0.8
+
+qrcode==8.2

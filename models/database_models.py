@@ -8,7 +8,7 @@ from sqlalchemy import or_, and_
 import json
 
 CASCADE = 'all, delete-orphan'
-USER_ID = 'users.id'
+USERS_ID = 'users.id'
 
 class User(db.Model):
     """Modelo de usuario"""
@@ -252,7 +252,7 @@ class CartItem(db.Model):
     __tablename__ = 'cart_items'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(USER_ID), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(USERS_ID), nullable=False)
     product_type = db.Column(db.String(20), nullable=False)  # 'game' o 'hardware'
     product_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, default=1)
@@ -282,7 +282,7 @@ class Order(db.Model):
     __tablename__ = 'orders'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(USERS_ID), nullable=False)
     total = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(20), default='pending')  # pending, completed, cancelled
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -405,7 +405,7 @@ class Invoice(db.Model):
     folio = db.Column(db.String(50), nullable=False)
     
     # Relaciones
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(USERS_ID), nullable=False)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     
     # Datos fiscales del cliente
@@ -520,7 +520,7 @@ class Wishlist(db.Model):
     __tablename__ = 'wishlist'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(USER_ID), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(USERS_ID), nullable=False)
     product_id = db.Column(db.Integer, nullable=False)
     product_type = db.Column(db.String(20), nullable=False)  # 'game' or 'hardware'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

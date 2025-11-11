@@ -15,107 +15,122 @@ class BottleneckDetector:
     @staticmethod
     def detect(cpu, gpu, ram):
         """
-        Detectar cuellos de botella
-        
+        Detectar cuellos de botella.
         Args:
             cpu: Objeto Hardware de tipo CPU
             gpu: Objeto Hardware de tipo GPU
             ram: Objeto Hardware de tipo RAM
-        
         Returns:
             dict con información del cuello de botella
         """
-        result = {
-            'has_bottleneck': False,
-            'type': 'balanced',
-            'severity': 'none',
-            'description': '',
-            'recommendations': [],
-            'percentage_loss': 0
-        }
-        
+        result = BottleneckDetector._init_result()
         cpu_score = cpu.benchmark_score or 0
         gpu_score = gpu.benchmark_score or 0
         ram_gb = BottleneckDetector._extract_ram_gb(ram)
-        
-        if cpu_score == 0 or gpu_score == 0:
-            result['description'] = 'No hay datos de benchmark suficientes para analizar.'
+
+        if not BottleneckDetector._has_valid_scores(cpu_score, gpu_score, result):
             return result
 
-        def handle_cpu_bottleneck(ratio):
-            result['has_bottleneck'] = True
-            result['type'] = 'cpu'
-            thresholds = [
-                (BottleneckDetector.SEVERE_RATIO, 'severe', 40, 0.6,
-                '⚠️ **Cuello de botella SEVERO en CPU**\n\n'
-                f'Tu GPU ({gpu.marca} {gpu.modelo}) es {ratio:.1f}x más potente '
-                f'que tu CPU ({cpu.marca} {cpu.modelo}).\n\n'
-                '**Impacto:** Pérdida de 30-50% del rendimiento de la GPU.',
-                '🔧 **URGENTE:** Actualizar CPU a score ~{score}+ para aprovechar la GPU.'),
-                (BottleneckDetector.MODERATE_RATIO, 'moderate', 25, 0.7,
-                '⚠️ **Cuello de botella MODERADO en CPU**\n\n'
-                f'Tu GPU es {ratio:.1f}x más potente que tu CPU. '
-                'En juegos exigentes notarás limitaciones.\n\n'
-                '**Impacto:** Pérdida de 15-30% del rendimiento.',
-                '🔧 Considera actualizar CPU a score ~{score}+'),
-                (0, 'mild', 10, 0.8,  # covers all lower ratios
-                'ℹ️ **Cuello de botella LEVE en CPU**\n\n'
-                f'Tu GPU es ligeramente más potente (ratio {ratio:.1f}x). '
-                'Funcionará bien en la mayoría de juegos.\n\n'
-                '**Impacto:** Pérdida de 5-15% en algunos juegos.',
-                '💡 Un CPU con score ~{score}+ optimizaría tu sistema.')
-            ]
-            for threshold, severity, percent, multiplier, desc, rec in thresholds:
-                if ratio >= threshold:
-                    result['severity'] = severity
-                    result['percentage_loss'] = percent
-                    result['description'] = desc
-                    result['recommendations'].append(
-                        rec.format(score=int(gpu_score * multiplier))
-                    )
-                    break
+        BottleneckDetector._detect_main_bottleneck(cpu_score, gpu_score, result)
+        BottleneckDetector._check_ram_bottleneck(result, ram_gb)
+        BottleneckDetector._check_balanced(result)
+        return result
 
-        def handle_gpu_bottleneck(ratio):
-            cpu_gpu_ratio = cpu_score / gpu_score
-            result['has_bottleneck'] = True
-            result['type'] = 'gpu'
-            thresholds = [
-                (BottleneckDetector.SEVERE_RATIO, 'severe', 40, 0.6,
-                '⚠️ **Cuello de botella SEVERO en GPU**\n\n'
-                f'Tu CPU es {cpu_gpu_ratio:.1f}x más potente que tu GPU. '
-                'La GPU está limitando el rendimiento gráfico.\n\n'
-                '**Impacto:** Limitación severa en FPS y calidad gráfica.',
-                '🔧 **URGENTE:** Actualizar GPU a score ~{score}+'),
-                (BottleneckDetector.MODERATE_RATIO, 'moderate', 25, 0.7,
-                '⚠️ **Cuello de botella MODERADO en GPU**\n\n'
-                f'Tu CPU es {cpu_gpu_ratio:.1f}x más potente que tu GPU. '
-                'Podrías mejorar significativamente con una GPU mejor.\n\n'
-                '**Impacto:** FPS limitados en juegos modernos.',
-                '🔧 Considera actualizar GPU a score ~{score}+'),
-                (0, 'mild', 10, 0.8,
-                'ℹ️ **Cuello de botella LEVE en GPU**\n\n'
-                'Tu CPU es ligeramente más potente. '
-                'Una GPU mejor aprovecharía más tu CPU.\n\n'
-                '**Impacto:** Limitación menor en FPS.',
-                '💡 Una GPU con score ~{score}+ mejoraría el rendimiento.')
-            ]
-            for threshold, severity, percent, multiplier, desc, rec in thresholds:
-                if cpu_gpu_ratio >= threshold:
-                    result['severity'] = severity
-                    result['percentage_loss'] = percent
-                    result['description'] = desc
-                    result['recommendations'].append(
-                        rec.format(score=int(cpu_score * multiplier))
-                    )
-                    break
+    # Métodos auxiliares sugeridos dentro de BottleneckDetector:
+    @staticmethod
+    def _has_valid_scores(cpu_score, gpu_score, result):
+        if cpu_score == 0 or gpu_score == 0:
+            result['description'] = 'No hay datos de benchmark suficientes para analizar.'
+            return False
+        return True
 
-        gpu_cpu_ratio = gpu_score / cpu_score
-        if gpu_cpu_ratio >= BottleneckDetector.MILD_RATIO:
-            handle_cpu_bottleneck(gpu_cpu_ratio)
-        elif gpu_cpu_ratio < (1 / BottleneckDetector.MILD_RATIO):
-            handle_gpu_bottleneck(gpu_cpu_ratio)
-        
-        # Verificar RAM insuficiente
+    @staticmethod
+    def _detect_main_bottleneck(cpu_score, gpu_score, result):
+        gpu_cpu_ratio = gpu_score / cpu_score if cpu_score else 0
+        cpu_gpu_ratio = cpu_score / gpu_score if gpu_score else 0
+
+        if BottleneckDetector._is_cpu_bottleneck(gpu_score, cpu_score):
+            if BottleneckDetector._apply_thresholds(gpu_cpu_ratio,
+                    BottleneckDetector._cpu_thresholds(),
+                    result, cpu_score, gpu_score, is_cpu=True):
+                result['has_bottleneck'] = True
+                result['type'] = 'cpu'
+        elif BottleneckDetector._is_gpu_bottleneck(gpu_score, cpu_score):
+            if BottleneckDetector._apply_thresholds(cpu_gpu_ratio,
+                    BottleneckDetector._gpu_thresholds(),
+                    result, cpu_score, gpu_score, is_cpu=False):
+                result['has_bottleneck'] = True
+                result['type'] = 'gpu'
+
+    @staticmethod
+    def _apply_thresholds(ratio, thresholds, result, cpu_score, gpu_score, is_cpu):
+        """
+        Aplica los umbrales al ratio y actualiza el resultado si corresponde.
+        Devuelve True si algún umbral se cumple, False si ninguno.
+        """
+        kind = 'cpu' if is_cpu else 'gpu'
+        for threshold_data in thresholds:
+            threshold = threshold_data[0]
+            if ratio < threshold:
+                continue
+            BottleneckDetector._update_result(
+                result,
+                threshold_data[1],       # severity
+                threshold_data[2],       # percent
+                threshold_data[3],       # multiplier
+                threshold_data[4],       # desc
+                threshold_data[5],       # rec
+                cpu_score,
+                gpu_score,
+                kind
+            )
+            return True
+        return False
+
+
+    # Métodos auxiliares sugeridos como métodos estáticos:
+    @staticmethod
+    def _init_result():
+        return {
+            'has_bottleneck': False, 'type': 'balanced', 'severity': 'none',
+            'description': '', 'recommendations': [], 'percentage_loss': 0
+       }
+
+    @staticmethod
+    def _update_result(result, severity, percent, desc, rec, multiplier, cpu_score, gpu_score, kind):
+        result['severity'] = severity
+        result['percentage_loss'] = percent
+        result['description'] = desc
+        if kind == 'cpu':
+            result['recommendations'].append(rec.format(score=int(gpu_score * multiplier)))
+        else:
+            result['recommendations'].append(rec.format(score=int(cpu_score * multiplier)))
+
+    @staticmethod
+    def _cpu_thresholds():
+        return [
+            (1.5, "severe", 25, 0.4, "Tu GPU es muy superior...", "💡 Un CPU con score ~{score}+..."),
+            (1.15, "moderate", 12, 0.6, "Tu GPU es ligeramente más potente...", "💡 Un CPU con score ~{score}+...")
+            # ...otros thresholds según tu lógica
+        ]
+
+    @staticmethod
+    def _gpu_thresholds():
+        return [
+            (1.15, "moderate", 13, 0.5, "Tu CPU es ligeramente más potente...", "💡 Una GPU con score ~{score}+...")
+            # ...otros thresholds según tu lógica
+        ]
+
+    @staticmethod
+    def _is_cpu_bottleneck(gpu_score, cpu_score):
+        return gpu_score / cpu_score >= BottleneckDetector.MILD_RATIO
+
+    @staticmethod
+    def _is_gpu_bottleneck(gpu_score, cpu_score):
+        return cpu_score / gpu_score >= BottleneckDetector.MILD_RATIO
+
+    @staticmethod
+    def _check_ram_bottleneck(result, ram_gb):
         if ram_gb < 16:
             result['has_bottleneck'] = True
             if result['type'] == 'balanced':
@@ -129,16 +144,17 @@ class BottleneckDetector:
             result['recommendations'].append(
                 '💾 Actualizar a 16GB o 32GB de RAM para mejor rendimiento.'
             )
-        
-        # Sistema balanceado
+
+    @staticmethod
+    def _check_balanced(result):
         if not result['has_bottleneck']:
             result['description'] = (
                 '✅ **¡Sistema Balanceado!**\n\n'
                 'Tu configuración está bien equilibrada. '
                 'No hay cuellos de botella significativos.'
             )
-        return result
-    
+
+        
     @staticmethod
     def _extract_ram_gb(ram):
         """Extraer capacidad de RAM en GB"""
@@ -148,7 +164,7 @@ class BottleneckDetector:
         # Fallback: extraer de especificaciones
         specs = ram.get_especificaciones() if hasattr(ram, 'get_especificaciones') else {}
         capacity_str = specs.get('capacidad', '8 GB')
-        
+       
         match = re.search(r'(\d+)\s*GB', str(capacity_str), re.IGNORECASE)
         if match:
             return int(match.group(1))

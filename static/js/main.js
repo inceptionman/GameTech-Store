@@ -160,14 +160,14 @@ function initializeShoppingCart() {
             if (response.redirected) {
                 showToast('Debes iniciar sesión para agregar productos al carrito', 'warning');
                 setTimeout(() => {
-                    window.location.href = '/login';
+                    globalThis.location.href = '/login';
                 }, 2000);
                 return null;
             }
             return response.json();
         })
         .then(data => {
-            if (data && data.success) {
+            if (data?.success) {
                 updateCartCounter(data.cart_count);
                 showToast(data.message, 'success');
             } else if (data) {
@@ -233,15 +233,12 @@ function initializeImageGallery() {
     const galleryImages = document.querySelectorAll('.gallery-image');
     const mainImage = document.querySelector('.main-image');
 
-    if (galleryImages.length > 0 && mainImage) {
-        galleryImages.forEach(img => {
-            img.addEventListener('click', function() {
-                mainImage.src = this.src;
-                galleryImages.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-    }
+    for (const t of galleryImages) {
+            t.classList.remove('active');
+        }
+
+        this.classList.add('active');
+    };
 }
 
 /**
@@ -289,9 +286,10 @@ function rotateFeaturedProducts() {
     if (featuredProducts.length <= 1) return;
 
     setInterval(() => {
-        featuredProducts.forEach((product, index) => {
+        let index = 0;
+        for (const product of featuredProducts) {
             product.style.display = index === currentIndex ? 'block' : 'none';
-        });
+        };
 
         currentIndex = (currentIndex + 1) % featuredProducts.length;
     }, 5000);
@@ -330,4 +328,4 @@ const GameTechUtils = {
 };
 
 // Hacer las utilidades disponibles globalmente
-window.GameTechUtils = GameTechUtils;
+globalThis.GameTechUtils = GameTechUtils;
