@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterButtons = document.querySelectorAll('[data-filter]');
     for (const button of filterButtons) {
         button.addEventListener('click', function() {
-            const filter = this.getAttribute('data-filter');
+            const filter = this.dataset('data-filter');
 
             // Actualizar botones activos
             for (const btn of filterButtons) {
@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Filtrar juegos
             const gameCards = document.querySelectorAll('.game-card');
             for (const card of gameCards) {
-                const genero = card.getAttribute('data-genero');
+                const genero = card.dataset('data-genero');
                 if (filter === 'all' || genero === filter) {
                     card.style.display = 'block';
                 } else {

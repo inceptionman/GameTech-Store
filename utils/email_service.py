@@ -115,4 +115,4 @@ El equipo de GameTech Store
 
 def get_token_expiry():
     """Obtener fecha de expiración del token (24 horas)"""
-    return datetime.utcnow() + timedelta(hours=24)
+    return datetime.now() + timedelta(hours=24)

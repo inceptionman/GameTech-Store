@@ -106,8 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     for (const button of wishlistButtons) {
         button.addEventListener('click', function() {
-            const productId = this.getAttribute('data-product-id');
-            const productType = this.getAttribute('data-product-type');
+            const productId = this.dataset('data-product-id');
+            const productType = this.dataset('data-product-type');
             
             if (confirm('¿Estás seguro de que quieres remover este producto de tu lista de deseos?')) {
                 fetch('/wishlist/remover', {

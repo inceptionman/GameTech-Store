@@ -79,51 +79,56 @@ def update_hardware_benchmarks():
                     ('vram_gb', 0), ('tdp_watts', 0)
                 ]
             }
-            if tipo in props_map:
-                for prop, default in props_map[tipo]:
-                    setattr(hardware, prop, specs.get(prop, default))
+            for prop, default in props_map.get(tipo, []):
+                setattr(hardware, prop, specs.get(prop, default))
+
+        def process_component(tipo, model_name, specs):
+            hardware_items = Hardware.query.filter(
+                Hardware.tipo == tipo,
+                Hardware.modelo.ilike(f'%{model_name}%')
+            ).all()
+            if not hardware_items:
+                not_found.append(f"{tipo}: {model_name}")
+                print(f"  ⚠️  No encontrado: {model_name}")
+                return 0
+            for hardware in hardware_items:
+                hardware.benchmark_score = specs['score']
+                update_hardware_properties(hardware, specs, tipo)
+                print(f"  ✅ {hardware.marca} {hardware.modelo} - Score: {specs['score']}")
+            return len(hardware_items)
 
         print("=" * 60)
         print("POBLACIÓN DE BENCHMARKS DE HARDWARE")
         print("=" * 60)
         print()
-        
+
         for tipo, components in BENCHMARK_DATA.items():
             print(f"\n🔧 Procesando {tipo}s...")
             for model_name, specs in components.items():
-                hardware_items = Hardware.query.filter(
-                    Hardware.tipo == tipo,
-                    Hardware.modelo.ilike(f'%{model_name}%')
-                ).all()
-                if not hardware_items:
-                    not_found.append(f"{tipo}: {model_name}")
-                    print(f"  ⚠️  No encontrado: {model_name}")
-                    continue
-                for hardware in hardware_items:
-                    hardware.benchmark_score = specs['score']
-                    update_hardware_properties(hardware, specs, tipo)
-                    updated_count += 1
-                    print(f"  ✅ {hardware.marca} {hardware.modelo} - Score: {specs['score']}")
-        
-        # Guardar cambios y mostrar resumen
+                updated_count += process_component(tipo, model_name, specs)
+
         try:
             db.session.commit()
             print("\n" + "=" * 60)
             print(f"✅ Total actualizado: {updated_count} componentes")
             print("=" * 60)
 
-            if not_found:
-                print(f"\n⚠️  No se encontraron {len(not_found)} componentes:")
-                for item in not_found[:10]:
-                    print(f"  - {item}")
-                if len(not_found) > 10:
-                    print(f"  ... y {len(not_found) - 10} más")
-                print("\n💡 Estos componentes no están en la base de datos.")
-                print("   Agrégalos primero si deseas incluir sus benchmarks.")
+            show_not_found(not_found)
+
         except Exception as e:
             db.session.rollback()
             print(f"\n❌ Error al guardar cambios: {e}")
             raise
+
+def show_not_found(not_found):
+    if not_found:
+        print(f"\n⚠️  No se encontraron {len(not_found)} componentes:")
+        for item in not_found[:10]:
+            print(f"  - {item}")
+        if len(not_found) > 10:
+            print(f"  ... y {len(not_found) - 10} más")
+        print("\n💡 Estos componentes no están en la base de datos.")
+        print("   Agrégalos primero si deseas incluir sus benchmarks.")
 
 if __name__ == '__main__':
     try:

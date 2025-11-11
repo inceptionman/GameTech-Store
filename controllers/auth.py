@@ -15,6 +15,7 @@ from datetime import datetime, timedelta, timezone
 AUTH_REGISTRO = 'auth/registro.html'
 RESET_PASSWORD = 'auth/reset_password.html'
 AUTH_LOGIN = 'auth.login'
+AUTH_LOGIN_HTML = 'auth/login.html'
 
 # Patrones de validación de contraseña
 PATTERN_LOWERCASE = r'[a-z]'
@@ -108,7 +109,7 @@ def login():
         
         if not username or not password:
             flash('Por favor ingresa usuario y contraseña', 'danger')
-            return render_template('auth/login.html')
+            return render_template(AUTH_LOGIN_HTML)
         
         user = User.query.filter_by(username=username).first()
         
@@ -116,7 +117,7 @@ def login():
             # Verificar si el correo está verificado
             if not user.email_verified:
                 flash('Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.', 'warning')
-                return render_template('auth/login.html', show_resend_link=True, user_email=user.email)
+                return render_template(AUTH_LOGIN_HTML, show_resend_link=True, user_email=user.email)
             
             # Login exitoso
             login_user(user, remember=remember)
@@ -131,7 +132,7 @@ def login():
             # Aquí podrías implementar un contador de intentos fallidos
             # Para simplicidad, solo mostramos el mensaje
     
-    return render_template('auth/login.html')
+    return render_template(AUTH_LOGIN_HTML)
 
 @auth_bp.route('/logout')
 @login_required
