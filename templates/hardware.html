@@ -44,19 +44,22 @@
                 <!-- Especificaciones rápidas -->
                 <div class="quick-specs mb-3">
                     {% if componente.tipo == 'CPU' %}
+                        {% set specs = componente.get_especificaciones() %}
                         <small class="text-muted">
-                            <i class="fas fa-microchip me-1"></i>{{ componente.especificaciones.nucleos }} Núcleos |
-                            <i class="fas fa-tachometer-alt me-1"></i>{{ componente.especificaciones.frecuencia_base }}
+                            <i class="fas fa-microchip me-1"></i>{{ specs.get('nucleos', 'N/A') }} Núcleos |
+                            <i class="fas fa-tachometer-alt me-1"></i>{{ specs.get('frecuencia_base', 'N/A') }}
                         </small>
                     {% elif componente.tipo == 'GPU' %}
+                        {% set specs = componente.get_especificaciones() %}
                         <small class="text-muted">
-                            <i class="fas fa-memory me-1"></i>{{ componente.especificaciones.memoria }} |
-                            <i class="fas fa-bolt me-1"></i>{{ componente.especificaciones.consumo }}
+                            <i class="fas fa-memory me-1"></i>{{ specs.get('memoria', 'N/A') }} |
+                            <i class="fas fa-bolt me-1"></i>{{ specs.get('consumo', 'N/A') }}
                         </small>
                     {% elif componente.tipo == 'RAM' %}
+                        {% set specs = componente.get_especificaciones() %}
                         <small class="text-muted">
-                            <i class="fas fa-memory me-1"></i>{{ componente.especificaciones.capacidad }} |
-                            <i class="fas fa-tachometer-alt me-1"></i>{{ componente.especificaciones.frecuencia }}
+                            <i class="fas fa-memory me-1"></i>{{ specs.get('capacidad', 'N/A') }} |
+                            <i class="fas fa-tachometer-alt me-1"></i>{{ specs.get('frecuencia', 'N/A') }}
                         </small>
                     {% endif %}
                 </div>

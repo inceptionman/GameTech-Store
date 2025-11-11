@@ -26,7 +26,7 @@
                         <div class="specs-section mb-4">
                             <h5 class="mb-3">Especificaciones Técnicas</h5>
                             <div class="specs-grid">
-                                {% for spec, value in componente.especificaciones.items() %}
+                                {% for spec, value in componente.get_especificaciones().items() %}
                                 <div class="spec-item">
                                     <span class="spec-label">{{ spec.replace('_', ' ').title() }}:</span>
                                     <span class="spec-value">{{ value }}</span>
