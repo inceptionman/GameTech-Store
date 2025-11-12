@@ -21,20 +21,33 @@
                     </div>
 
                     <form method="POST" action="{{ url_for('invoice.solicitar_factura', order_id=order.id) }}">
-                        <h5 class="mb-3">Datos Fiscales</h5>
+                        <h5 class="mb-3">Datos Fiscales (Colombia)</h5>
                         
-                        <!-- RFC -->
-                        <div class="mb-3">
-                            <label for="rfc" class="form-label">RFC <span class="text-danger">*</span></label>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="rfc" 
-                                   name="rfc" 
-                                   value="{{ user.rfc or '' }}"
-                                   maxlength="13"
-                                   required
-                                   placeholder="XAXX010101000">
-                            <small class="text-muted">12 o 13 caracteres</small>
+                        <div class="row">
+                            <!-- Tipo de Documento -->
+                            <div class="col-md-4 mb-3">
+                                <label for="tipo_documento" class="form-label">Tipo de Documento <span class="text-danger">*</span></label>
+                                <select class="form-select" id="tipo_documento" name="tipo_documento" required>
+                                    <option value="13">Cédula de Ciudadanía</option>
+                                    <option value="31" selected>NIT</option>
+                                    <option value="22">Cédula de Extranjería</option>
+                                    <option value="41">Pasaporte</option>
+                                </select>
+                            </div>
+                            
+                            <!-- NIT/CC -->
+                            <div class="col-md-8 mb-3">
+                                <label for="nit" class="form-label">NIT / Cédula <span class="text-danger">*</span></label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="nit" 
+                                       name="nit" 
+                                       value="{{ user.rfc or '' }}"
+                                       maxlength="20"
+                                       required
+                                       placeholder="900123456-7">
+                                <small class="text-muted">Incluir dígito de verificación si es NIT</small>
+                            </div>
                         </div>
 
                         <!-- Razón Social -->
@@ -60,6 +73,59 @@
                         </div>
 
                         <div class="row">
+                            <!-- Ciudad -->
+                            <div class="col-md-6 mb-3">
+                                <label for="ciudad" class="form-label">Ciudad</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="ciudad" 
+                                       name="ciudad" 
+                                       placeholder="Bogotá">
+                            </div>
+
+                            <!-- Departamento -->
+                            <div class="col-md-6 mb-3">
+                                <label for="departamento" class="form-label">Departamento</label>
+                                <select class="form-select" id="departamento" name="departamento">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Amazonas">Amazonas</option>
+                                    <option value="Antioquia">Antioquia</option>
+                                    <option value="Arauca">Arauca</option>
+                                    <option value="Atlántico">Atlántico</option>
+                                    <option value="Bogotá D.C." selected>Bogotá D.C.</option>
+                                    <option value="Bolívar">Bolívar</option>
+                                    <option value="Boyacá">Boyacá</option>
+                                    <option value="Caldas">Caldas</option>
+                                    <option value="Caquetá">Caquetá</option>
+                                    <option value="Casanare">Casanare</option>
+                                    <option value="Cauca">Cauca</option>
+                                    <option value="Cesar">Cesar</option>
+                                    <option value="Chocó">Chocó</option>
+                                    <option value="Córdoba">Córdoba</option>
+                                    <option value="Cundinamarca">Cundinamarca</option>
+                                    <option value="Guainía">Guainía</option>
+                                    <option value="Guaviare">Guaviare</option>
+                                    <option value="Huila">Huila</option>
+                                    <option value="La Guajira">La Guajira</option>
+                                    <option value="Magdalena">Magdalena</option>
+                                    <option value="Meta">Meta</option>
+                                    <option value="Nariño">Nariño</option>
+                                    <option value="Norte de Santander">Norte de Santander</option>
+                                    <option value="Putumayo">Putumayo</option>
+                                    <option value="Quindío">Quindío</option>
+                                    <option value="Risaralda">Risaralda</option>
+                                    <option value="San Andrés y Providencia">San Andrés y Providencia</option>
+                                    <option value="Santander">Santander</option>
+                                    <option value="Sucre">Sucre</option>
+                                    <option value="Tolima">Tolima</option>
+                                    <option value="Valle del Cauca">Valle del Cauca</option>
+                                    <option value="Vaupés">Vaupés</option>
+                                    <option value="Vichada">Vichada</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
                             <!-- Código Postal -->
                             <div class="col-md-6 mb-3">
                                 <label for="codigo_postal" class="form-label">Código Postal</label>
@@ -68,56 +134,41 @@
                                        id="codigo_postal" 
                                        name="codigo_postal" 
                                        value="{{ user.codigo_postal or '' }}"
-                                       maxlength="5"
-                                       placeholder="00000">
+                                       maxlength="6"
+                                       placeholder="110111">
                             </div>
-
-                            <!-- Régimen Fiscal -->
+                            
+                            <!-- Teléfono -->
                             <div class="col-md-6 mb-3">
-                                <label for="regimen_fiscal" class="form-label">Régimen Fiscal</label>
-                                <select class="form-select" id="regimen_fiscal" name="regimen_fiscal">
-                                    <option value="">Seleccionar...</option>
-                                    <option value="601" {% if user.regimen_fiscal == '601' %}selected{% endif %}>601 - General de Ley Personas Morales</option>
-                                    <option value="603" {% if user.regimen_fiscal == '603' %}selected{% endif %}>603 - Personas Morales con Fines no Lucrativos</option>
-                                    <option value="605" {% if user.regimen_fiscal == '605' %}selected{% endif %}>605 - Sueldos y Salarios</option>
-                                    <option value="606" {% if user.regimen_fiscal == '606' %}selected{% endif %}>606 - Arrendamiento</option>
-                                    <option value="612" {% if user.regimen_fiscal == '612' %}selected{% endif %}>612 - Personas Físicas con Actividades Empresariales</option>
-                                    <option value="616" {% if user.regimen_fiscal == '616' %}selected{% endif %}>616 - Sin obligaciones fiscales</option>
-                                    <option value="621" {% if user.regimen_fiscal == '621' %}selected{% endif %}>621 - Incorporación Fiscal</option>
-                                    <option value="625" {% if user.regimen_fiscal == '625' %}selected{% endif %}>625 - Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas</option>
-                                    <option value="626" {% if user.regimen_fiscal == '626' %}selected{% endif %}>626 - Régimen Simplificado de Confianza</option>
-                                </select>
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="telefono" 
+                                       name="telefono" 
+                                       placeholder="3001234567">
                             </div>
                         </div>
 
-                        <div class="row">
-                            <!-- Uso de CFDI -->
-                            <div class="col-md-6 mb-3">
-                                <label for="uso_cfdi" class="form-label">Uso de CFDI</label>
-                                <select class="form-select" id="uso_cfdi" name="uso_cfdi">
-                                    <option value="G01">G01 - Adquisición de mercancías</option>
-                                    <option value="G02">G02 - Devoluciones, descuentos o bonificaciones</option>
-                                    <option value="G03" selected>G03 - Gastos en general</option>
-                                    <option value="I01">I01 - Construcciones</option>
-                                    <option value="I02">I02 - Mobiliario y equipo de oficina</option>
-                                    <option value="I03">I03 - Equipo de transporte</option>
-                                    <option value="I04">I04 - Equipo de cómputo y accesorios</option>
-                                    <option value="P01">P01 - Por definir</option>
-                                </select>
-                            </div>
-
-                            <!-- Forma de Pago -->
-                            <div class="col-md-6 mb-3">
-                                <label for="forma_pago" class="form-label">Forma de Pago</label>
-                                <select class="form-select" id="forma_pago" name="forma_pago">
-                                    <option value="01">01 - Efectivo</option>
-                                    <option value="02">02 - Cheque nominativo</option>
-                                    <option value="03" selected>03 - Transferencia electrónica</option>
-                                    <option value="04">04 - Tarjeta de crédito</option>
-                                    <option value="28">28 - Tarjeta de débito</option>
-                                    <option value="99">99 - Por definir</option>
-                                </select>
-                            </div>
+                        <!-- Forma de Pago -->
+                        <div class="mb-3">
+                            <label for="forma_pago" class="form-label">Forma de Pago</label>
+                            <select class="form-select" id="forma_pago" name="forma_pago">
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Tarjeta de Crédito" selected>Tarjeta de Crédito</option>
+                                <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+                                <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                                <option value="PSE">PSE</option>
+                                <option value="Nequi">Nequi</option>
+                                <option value="Daviplata">Daviplata</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Email (automático) -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-envelope me-2"></i>
+                            <strong>Email:</strong> {{ user.email }}
+                            <br>
+                            <small>La factura será enviada automáticamente a este correo</small>
                         </div>
 
                         <!-- Guardar datos -->
@@ -133,9 +184,9 @@
                         <!-- Resumen -->
                         <div class="alert alert-light">
                             <h6>Resumen de Factura:</h6>
-                            <p class="mb-1">Subtotal: ${{ "%.2f"|format(order.total / 1.16) }}</p>
-                            <p class="mb-1">IVA (16%): ${{ "%.2f"|format(order.total - (order.total / 1.16)) }}</p>
-                            <p class="mb-0"><strong>Total: ${{ "%.2f"|format(order.total) }}</strong></p>
+                            <p class="mb-1">Subtotal: ${{ "%.2f"|format(order.total / 1.19) }} COP</p>
+                            <p class="mb-1">IVA (19%): ${{ "%.2f"|format(order.total - (order.total / 1.19)) }} COP</p>
+                            <p class="mb-0"><strong>Total: ${{ "%.2f"|format(order.total) }} COP</strong></p>
                         </div>
 
                         <!-- Botones -->
@@ -156,11 +207,12 @@
                 <div class="card-body">
                     <h6><i class="fas fa-info-circle me-2 text-info"></i>Información Importante</h6>
                     <ul class="small mb-0">
-                        <li>La factura se generará inmediatamente después de enviar el formulario</li>
-                        <li>Recibirás un correo electrónico con la factura en formato PDF</li>
-                        <li>Podrás descargar la factura desde tu perfil en cualquier momento</li>
-                        <li>Los datos fiscales deben ser correctos, no se podrán modificar después</li>
-                        <li>La factura incluirá todos los productos de esta orden</li>
+                        <li>La factura electrónica se generará inmediatamente</li>
+                        <li>📧 <strong>Recibirás la factura por correo electrónico</strong> en formato PDF</li>
+                        <li>La factura es válida ante la DIAN</li>
+                        <li>Podrás descargarla desde tu perfil en cualquier momento</li>
+                        <li>Los datos fiscales deben ser correctos</li>
+                        <li>IVA del 19% aplicado según normativa colombiana</li>
                     </ul>
                 </div>
             </div>
