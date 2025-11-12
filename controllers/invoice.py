@@ -1,12 +1,13 @@
 """
-Controlador de facturas electrónicas
-Maneja la solicitud, generación y descarga de facturas
+Controlador de facturas electrónicas colombianas
+Maneja la solicitud, generación y envío de facturas por correo
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, jsonify, current_app
 from flask_login import login_required, current_user
-from database import db
+from flask_mail import Message
+from extensions import db
 from models.database_models import Invoice, Order, User
-from utils.invoice_generator import InvoiceGenerator
+from utils.invoice_generator_colombia import InvoiceGeneratorColombia as InvoiceGenerator
 import os
 from datetime import datetime
 
@@ -143,7 +144,6 @@ def _generar_pdf_factura(invoice, order):
 def _traceback_log():
     import traceback
     current_app.logger.error(traceback.format_exc())
-
 
 @invoice_bp.route('/factura/<int:invoice_id>')
 @login_required

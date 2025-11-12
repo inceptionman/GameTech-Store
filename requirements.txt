@@ -44,6 +44,6 @@ Flask-Limiter==4.0.0
 # Monitoreo y Error Tracking
 sentry-sdk==2.43.0
 
+# Generación de PDFs y QR
 reportlab==4.0.8
-
-qrcode==8.2
+qrcode[pil]==8.0

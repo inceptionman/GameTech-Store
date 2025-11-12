@@ -99,9 +99,9 @@ limiter = init_limiter(app)
 add_security_headers(app)
 init_sentry(app)
 
-# Ejecutar migraciones automáticas
-from utils.auto_migrate import init_auto_migrations
-init_auto_migrations(app)
+# Ejecutar migraciones automáticas (desactivado temporalmente por timeouts)
+# from utils.auto_migrate import init_auto_migrations
+# init_auto_migrations(app)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -121,7 +121,7 @@ from controllers.admin import admin_bp
 from controllers.hardware_analyzer import analyzer_bp
 from controllers.invoice import invoice_bp
 from controllers.wishlist import wishlist_bp
-from controllers.diagnostico import diagnostico_bp
+from controllers.migrate_endpoint import migrate_bp
 
 # Registrar blueprints
 app.register_blueprint(store_bp)
@@ -132,7 +132,7 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(analyzer_bp)
 app.register_blueprint(invoice_bp)
 app.register_blueprint(wishlist_bp)
-app.register_blueprint(diagnostico_bp)
+app.register_blueprint(migrate_bp)
 
 # Configurar logging
 if not app.debug:
