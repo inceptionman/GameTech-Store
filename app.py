@@ -99,6 +99,10 @@ limiter = init_limiter(app)
 add_security_headers(app)
 init_sentry(app)
 
+# Ejecutar migraciones automáticas
+from utils.auto_migrate import init_auto_migrations
+init_auto_migrations(app)
+
 @login_manager.user_loader
 def load_user(user_id):
     from models.database_models import User
