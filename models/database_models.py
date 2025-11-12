@@ -416,7 +416,7 @@ class Invoice(db.Model):
     
     # Datos fiscales del cliente (Colombia)
     nit_receptor = db.Column(db.String(20), nullable=False)  # NIT o CC
-    tipo_documento_receptor = db.Column(db.String(10), default='31')  # 13=CC, 31=NIT
+    tipo_documento_receptor = db.Column(db.String(10), default='31')  
     razon_social_receptor = db.Column(db.String(200), nullable=False)
     direccion_fiscal = db.Column(db.String(300))
     ciudad = db.Column(db.String(100))

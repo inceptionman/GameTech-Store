@@ -37,7 +37,7 @@ def migrate_invoices_to_colombia():
                     print(f"  ✅ {migration[:50]}...")
                 except Exception as e:
                     if "already exists" in str(e) or "duplicate column" in str(e).lower():
-                        print(f"  ⏭️  Columna ya existe, continuando...")
+                        print("  ⏭️  Columna ya existe, continuando...")
                     else:
                         print(f"  ⚠️  Error: {str(e)}")
             
