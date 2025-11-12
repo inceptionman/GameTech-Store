@@ -51,12 +51,14 @@ def solicitar_factura(order_id):
             flash('NIT/CC y Razón Social son obligatorios', 'danger')
             return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
         
-        # Validar formato de NIT (simplificado)
-        if len(nit) != 10 and len(nit) != 11:
-            flash('NIT inválido. Debe tener 10 o 11 caracteres', 'danger')
+        # Validar formato de NIT (flexible)
+        if len(nit) < 6 or len(nit) > 20:
+            flash('NIT/CC inválido. Debe tener entre 6 y 20 caracteres', 'danger')
             return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
         
         try:
+            current_app.logger.info(f'Iniciando generación de factura para orden {order.id}')
+            
             # Guardar datos fiscales en el usuario si lo solicita
             if request.form.get('guardar_datos'):
                 current_user.rfc = nit  # Guardar NIT en campo rfc
@@ -64,8 +66,10 @@ def solicitar_factura(order_id):
                 current_user.direccion_fiscal = direccion_fiscal
                 current_user.codigo_postal = codigo_postal
                 db.session.commit()
+                current_app.logger.info('Datos fiscales guardados en usuario')
             
             # Crear factura con datos colombianos
+            current_app.logger.info('Creando objeto Invoice')
             invoice = Invoice(
                 order_id=order.id,
                 user_id=current_user.id,
@@ -102,9 +106,11 @@ def solicitar_factura(order_id):
             # Generar CUFE (simplificado)
             import uuid
             invoice.cufe = str(uuid.uuid4())
+            current_app.logger.info(f'CUFE generado: {invoice.cufe[:20]}...')
             
             db.session.add(invoice)
             db.session.flush()  # Para obtener el ID
+            current_app.logger.info(f'Factura guardada en BD con ID: {invoice.id}')
             
             # Generar PDF
             try:
@@ -129,6 +135,10 @@ def solicitar_factura(order_id):
             
         except Exception as e:
             db.session.rollback()
+            current_app.logger.error(f'Error generando factura: {str(e)}')
+            current_app.logger.error(f'Traceback: {e.__class__.__name__}')
+            import traceback
+            current_app.logger.error(traceback.format_exc())
             flash(f'Error al generar la factura: {str(e)}', 'danger')
             return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
     
