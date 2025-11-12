@@ -182,7 +182,7 @@ class Hardware(db.Model):
             return {}
         try:
             return json.loads(self.especificaciones)
-        except (json.JSONDecodeError, TypeError, ValueError) as e:
+        except (TypeError, ValueError) as e:
             print(f"Error parsing especificaciones for {self.id}: {e}")
             return {}
     

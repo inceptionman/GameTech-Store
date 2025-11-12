@@ -127,8 +127,14 @@ function initializeShoppingCart() {
         // Obtener posibles atributos de datos: soportar varias convenciones
         const dataset = button.dataset || {};
         const productId = dataset.juegoId || dataset.hardwareId || dataset.productId || dataset.product_id;
-        let productType = dataset.juegoId ? 'game' : (dataset.hardwareId ? 'hardware' : (dataset.productType || dataset.product_type || null));
-
+        let productType = null;
+        if (dataset.juegoId) {
+        productType = 'game';
+        } else if (dataset.hardwareId) {
+        productType = 'hardware';
+        } else {
+        productType = dataset.productType || dataset.product_type || null;
+        }
         // Si no logramos inferir, intentar heurística por ruta/atributos
         if (!productType && productId) {
             // Si el botón tiene 'data-product-type' en minúsculas
@@ -138,7 +144,7 @@ function initializeShoppingCart() {
         if (!productId) return;
 
         // Normalizar productId a número cuando sea posible
-        const normalizedId = isNaN(Number(productId)) ? productId : Number(productId);
+        const normalizedId = Number.isNaN(Number(productId)) ? productId : Number(productId);
 
         addToCart(normalizedId, productType || 'hardware');
     });

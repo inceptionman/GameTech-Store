@@ -362,45 +362,51 @@ function checkBuildComplete() {
 // Auto-recomendación
 function autoRecommend() {
     const budget = Number.parseInt(document.getElementById('budget-select').value);
-
-    // Lógica simple de recomendación basada en presupuesto
     const tipos = ['CPU', 'GPU', 'RAM', 'Motherboard'];
     for (const tipo of tipos) {
         if (!currentBuild[tipo]) {
-            const componentes = componentsData[tipo] || [];
             let recommended;
-
-            switch(tipo) {
+            switch (tipo) {
                 case 'CPU':
-                    recommended = budget >= 1500 ?
-                        componentes.find(c => c.marca === 'AMD' && c.modelo.includes('7600')) :
-                        componentes.find(c => c.marca === 'Intel' && c.modelo.includes('12400'));
+                    recommended = recommendCPU(budget, componentesData[tipo]);
                     break;
                 case 'GPU':
-                    // Elegir GPU según presupuesto (corrige error previo)
-                    if (budget >= 2000) {
-                        recommended = componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('4070')) || componentes[0];
-                    } else if (budget >= 1200) {
-                        recommended = componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('4060')) || componentes[0];
-                    } else {
-                        recommended = componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('3060')) || componentes[0];
-                    }
+                    recommended = recommendGPU(budget, componentesData[tipo]);
                     break;
                 case 'RAM':
-                    recommended = componentes.find(c => c.especificaciones && c.especificaciones.capacidad === '16 GB');
+                    recommended = componentesData[tipo].find(c =>
+                        c.especificaciones && c.especificaciones.capacidad === '16 GB'
+                    );
                     break;
                 case 'Motherboard':
-                    recommended = componentes.find(c => c.socket === 'AM4' || c.socket === 'LGA 1700');
+                    recommended = componentesData[tipo].find(c =>
+                        c.socket === 'AM4' || c.socket === 'LGA 1700'
+                    );
                     break;
             }
-
             if (recommended) {
                 chooseComponent(tipo, recommended.id);
             }
         }
-    };
+    }
+}
 
-    updateRecommendations();
+function recommendCPU(budget, componentes) {
+    if (budget >= 1500) {
+        return componentes.find(c => c.marca === 'AMD' && c.modelo.includes('7600'))
+            || componentes.find(c => c.marca === 'Intel' && c.modelo.includes('12400'));
+    }
+    return componentes.find(c => c.marca === 'Intel' && c.modelo.includes('12400'));
+}
+
+function recommendGPU(budget, componentes) {
+    if (budget > 2000) {
+        return componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('4070')) || componentes[0];
+    }
+    if (budget > 1200) {
+        return componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('4060')) || componentes[0];
+    }
+    return componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('3060')) || componentes[0];
 }
 
 // Actualizar recomendaciones

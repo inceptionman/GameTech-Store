@@ -61,7 +61,7 @@ def api_buscar_hardware():
     """API para buscar hardware"""
     try:
         query = request.args.get('q', '')
-        current_app.logger.info(f'API buscar hardware: query={query}')
+        current_app.logger.info('API buscar hardware llamado')
         
         resultados = Hardware.buscar_hardware(query)
         current_app.logger.info(f'Resultados encontrados: {len(resultados)}')
