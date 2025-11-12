@@ -109,26 +109,35 @@ def solicitar_factura(order_id):
             current_app.logger.info(f'CUFE generado: {invoice.cufe[:20]}...')
             
             db.session.add(invoice)
-            db.session.flush()  # Para obtener el ID
-            current_app.logger.info(f'Factura guardada en BD con ID: {invoice.id}')
             
-            # Generar PDF
+            # NO hacer flush aquí - esperar a que todo esté listo
+            current_app.logger.info('Factura creada en memoria, preparando PDF...')
+            
+            # Generar PDF antes de commit
             try:
-                pdf_filename = f'factura_{invoice.folio}_{invoice.cufe[:8]}.pdf'
+                # Usar un ID temporal para el nombre del archivo
+                temp_id = f"{order.id}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                pdf_filename = f'factura_{invoice.folio}_{temp_id}.pdf'
                 pdf_dir = os.path.join('static', 'invoices', 'pdf')
                 os.makedirs(pdf_dir, exist_ok=True)
                 pdf_path = os.path.join(pdf_dir, pdf_filename)
                 full_pdf_path = os.path.join(os.getcwd(), pdf_path)
                 
+                current_app.logger.info(f'Generando PDF en: {full_pdf_path}')
                 InvoiceGenerator.generate_pdf(invoice, order, full_pdf_path)
                 invoice.pdf_path = pdf_path
                 
-                current_app.logger.info(f'PDF generado: {pdf_path}')
+                current_app.logger.info(f'PDF generado exitosamente: {pdf_path}')
             except Exception as pdf_error:
                 current_app.logger.error(f'Error generando PDF: {str(pdf_error)}')
-                # Continuar sin PDF si falla
+                import traceback
+                current_app.logger.error(traceback.format_exc())
+                # Si falla el PDF, no guardar la factura
+                raise Exception(f'Error al generar PDF: {str(pdf_error)}')
             
+            # Solo hacer commit si todo salió bien
             db.session.commit()
+            current_app.logger.info(f'Factura guardada exitosamente con ID: {invoice.id}')
             
             flash(f'¡Factura generada exitosamente! Folio: {invoice.folio}', 'success')
             return redirect(url_for(CART_ORDENES))
