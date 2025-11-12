@@ -21,84 +21,129 @@ invoice_bp = Blueprint('invoice', __name__)
 def solicitar_factura(order_id):
     """Solicitar factura para una orden"""
     order = Order.query.get_or_404(order_id)
-    
-    if not _user_can_invoice(order):
-        return _forbidden_redirect()
-        
-    existing_invoice = Invoice.query.filter_by(order_id=order.id).first()
-    if existing_invoice:
-        return _already_invoiced_redirect(existing_invoice)
+
+    if not _orden_pertenece_usuario(order):
+        return _orden_sin_permiso()
+
+    invoice_existente = Invoice.query.filter_by(order_id=order.id).first()
+    if invoice_existente:
+        return _orden_facturada(invoice_existente)
 
     if request.method == 'POST':
-        return _handle_invoice_form(order)
-        
+        datos = _datos_formulario_factura(request)
+        error = _validar_datos_factura(datos)
+        if error:
+            flash(error, "danger")
+            return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
+
+        try:
+            if datos['guardar_datos']:
+                _guardar_datos_usuario(datos)
+
+            invoice = _crear_objeto_factura(order, datos)
+            db.session.add(invoice)
+            pdf_path = _generar_pdf_factura(invoice, order)
+            invoice.pdf_path = pdf_path
+
+            db.session.commit()
+            flash(f'¡Factura generada exitosamente! Folio: {invoice.folio}', 'success')
+            return redirect(url_for(CART_ORDENES))
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f'Error generando factura: {str(e)}')
+            _traceback_log()
+            flash(f'Error al generar la factura: {str(e)}', 'danger')
+            return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
+
     # GET - Mostrar formulario
     return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
 
 
-def _user_can_invoice(order):
+def _orden_pertenece_usuario(order):
     return order.user_id == current_user.id
 
-def _forbidden_redirect():
+def _orden_sin_permiso():
     flash('No tienes permiso para facturar esta orden', 'danger')
     return redirect(url_for(CART_ORDENES))
 
-def _already_invoiced_redirect(existing_invoice):
+def _orden_facturada(invoice_existente):
     flash('Esta orden ya tiene una factura generada', 'info')
-    return redirect(url_for(VER_FACTURA, invoice_id=existing_invoice.id))
+    return redirect(url_for(VER_FACTURA, invoice_id=invoice_existente.id))
 
-def _handle_invoice_form(order):
-    nit, razon_social, error = _get_and_validate_invoice_fields()
-    if error:
-        flash(error, 'danger')
-        return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
-    
-    try:
-        _maybe_save_user_fiscal_data(nit, razon_social)
-        invoice = _build_invoice(order, nit, razon_social)
-        _generate_invoice_pdf(invoice, order)
-        db.session.add(invoice)
-        db.session.commit()
-        flash(f'¡Factura generada exitosamente! Folio: {invoice.folio}', 'success')
-        return redirect(url_for(CART_ORDENES))
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Error generando factura: {str(e)}')
-        flash(f'Error al generar la factura: {str(e)}', 'danger')
-        return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
+def _datos_formulario_factura(request):
+    return {
+        'nit': request.form.get('nit', '').strip(),
+        'tipo_documento': request.form.get('tipo_documento', '31'),
+        'razon_social': request.form.get('razon_social', '').strip(),
+        'direccion_fiscal': request.form.get('direccion_fiscal', '').strip(),
+        'ciudad': request.form.get('ciudad', '').strip(),
+        'departamento': request.form.get('departamento', '').strip(),
+        'codigo_postal': request.form.get('codigo_postal', '').strip(),
+        'telefono': request.form.get('telefono', '').strip(),
+        'forma_pago': request.form.get('forma_pago', 'Tarjeta de Crédito'),
+        'guardar_datos': bool(request.form.get('guardar_datos')),
+    }
 
-def _get_and_validate_invoice_fields():
-    nit = request.form.get('nit', '').strip()
-    razon_social = request.form.get('razon_social', '').strip()
-    # ... obtener otros campos como antes
-    if not nit or not razon_social:
-        return nit, razon_social, 'NIT/CC y Razón Social son obligatorios'
-    if len(nit) < 6 or len(nit) > 20:
-        return nit, razon_social, 'NIT/CC inválido. Debe tener entre 6 y 20 caracteres'
-    return nit, razon_social, None
+def _validar_datos_factura(datos):
+    if not datos['nit'] or not datos['razon_social']:
+        return 'NIT/CC y Razón Social son obligatorios'
+    if len(datos['nit']) < 6 or len(datos['nit']) > 20:
+        return 'NIT/CC inválido. Debe tener entre 6 y 20 caracteres'
+    return None
 
-def _maybe_save_user_fiscal_data(nit, razon_social):
-    if request.form.get('guardar_datos'):
-        # Guardar datos fiscales en el usuario
-        current_user.rfc = nit
-        current_user.razon_social = razon_social
-        current_user.direccion_fiscal = request.form.get('direccion_fiscal', '').strip()
-        current_user.codigo_postal = request.form.get('codigo_postal', '').strip()
-        db.session.commit()
-        current_app.logger.info('Datos fiscales guardados en usuario')
+def _guardar_datos_usuario(datos):
+    current_user.rfc = datos['nit']
+    current_user.razon_social = datos['razon_social']
+    current_user.direccion_fiscal = datos['direccion_fiscal']
+    current_user.codigo_postal = datos['codigo_postal']
+    db.session.commit()
+    current_app.logger.info('Datos fiscales guardados en usuario')
 
-def _build_invoice(order, nit, razon_social):
-    # ... construir y devolver el objeto Invoice en base a los datos y a tu lógica actual
-    # Devuelve el objeto Invoice (omitir detalles por brevedad)
-    pass
+def _crear_objeto_factura(order, datos):
+    import uuid as uuid_lib
+    invoice_uuid = str(uuid_lib.uuid4())
+    return Invoice(
+        uuid=invoice_uuid,
+        order_id=order.id,
+        user_id=current_user.id,
+        folio=f'FE-{order.id:06d}',
+        fecha_emision=datetime.now(),
+        nit_receptor=datos['nit'] or '000000000',
+        tipo_documento_receptor=datos['tipo_documento'] or '31',
+        razon_social_receptor=datos['razon_social'] or 'Cliente General',
+        direccion_fiscal=datos['direccion_fiscal'] or 'N/A',
+        ciudad=datos['ciudad'] or 'Bogotá',
+        departamento=datos['departamento'] or 'Bogotá D.C.',
+        codigo_postal=datos['codigo_postal'] or '110111',
+        telefono=datos['telefono'] or '0000000000',
+        email_receptor=current_user.email or 'cliente@example.com',
+        nit_emisor='900123456-7',
+        razon_social_emisor='GameTech Store SAS',
+        regimen_emisor='Responsable de IVA',
+        subtotal=float(order.total / 1.19),
+        iva=float(order.total - (order.total / 1.19)),
+        total=float(order.total),
+        forma_pago=datos['forma_pago'] or 'Tarjeta de Crédito',
+        metodo_pago='Contado',
+        status='active',
+        cufe=invoice_uuid,
+    )
 
-def _generate_invoice_pdf(invoice, order):
-    # ... tu lógica actual de generación de PDF, pero sin tanto nesting
-    pass
+def _generar_pdf_factura(invoice, order):
+    temp_id = f"{order.id}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    pdf_filename = f'factura_{invoice.folio}_{temp_id}.pdf'
+    pdf_dir = os.path.join('static', 'invoices', 'pdf')
+    os.makedirs(pdf_dir, exist_ok=True)
+    pdf_path = os.path.join(pdf_dir, pdf_filename)
+    full_pdf_path = os.path.join(os.getcwd(), pdf_path)
+    InvoiceGenerator.generate_pdf(invoice, order, full_pdf_path)
+    current_app.logger.info(f'PDF generado exitosamente: {pdf_path}')
+    return pdf_path
 
-    
-    # GET - Mostrar formulario
-    return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
+def _traceback_log():
+    import traceback
+    current_app.logger.error(traceback.format_exc())
+
 
 @invoice_bp.route('/factura/<int:invoice_id>')
 @login_required

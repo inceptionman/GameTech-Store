@@ -20,66 +20,61 @@ def run_auto_migrations():
     """Ejecutar migraciones automáticas al iniciar la app"""
     try:
         current_app.logger.info("🔄 Verificando migraciones necesarias...")
-
-        if not _table_exists('invoices'):
+        inspector = inspect(db.engine)
+        if 'invoices' not in inspector.get_table_names():
             current_app.logger.info("⏭️  Tabla invoices no existe aún, saltando migraciones")
             return
 
-        migrations_needed = _get_pending_migrations()
+        migrations_needed = _get_missing_columns('invoices')
         if not migrations_needed:
             current_app.logger.info("✅ Todas las migraciones ya están aplicadas")
             return
 
-        _apply_pending_migrations(migrations_needed)
+        _apply_migrations('invoices', migrations_needed)
         _migrate_existing_data()
-        _show_migration_summary()
+        db.session.commit()
+        current_app.logger.info("✅ Migraciones aplicadas exitosamente!")
+        _mostrar_resumen('invoices')
 
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"❌ Error en migraciones automáticas: {str(e)}")
         # No lanzar excepción para no impedir que la app inicie
 
-def _table_exists(table_name):
-    inspector = inspect(db.engine)
-    return table_name in inspector.get_table_names()
 
-def _get_pending_migrations():
+def _get_missing_columns(table_name):
     colombia_columns = {
-        'nit_receptor': 'VARCHAR(30)',
-        'tipo_documento_receptor': 'VARCHAR(4)',
-        'razon_social_receptor': 'VARCHAR(128)',
-        'ciudad': 'VARCHAR(128)',
-        'departamento': 'VARCHAR(128)',
-        'codigo_postal': 'VARCHAR(16)',
-        'telefono': 'VARCHAR(64)',
-        'email_receptor': 'VARCHAR(128)',
+        'nit_receptor': 'VARCHAR(20)',
+        'tipo_documento_receptor': "VARCHAR(10) DEFAULT '31'",
+        'ciudad': 'VARCHAR(100)',
+        'departamento': 'VARCHAR(100)',
+        'telefono': 'VARCHAR(20)',
+        'email_receptor': 'VARCHAR(200)',
+        'nit_emisor': "VARCHAR(20) DEFAULT '900123456-7'",
+        'regimen_emisor': "VARCHAR(50) DEFAULT 'Responsable de IVA'",
+        'cufe': 'TEXT',
         'qr_code': 'TEXT',
         'fecha_validacion_dian': 'TIMESTAMP'
     }
-    return [
-        (col, typ)
-        for col, typ in colombia_columns.items()
-        if not check_column_exists('invoices', col)
-    ]
+    migrations_needed = []
+    for column_name, column_type in colombia_columns.items():
+        if not check_column_exists(table_name, column_name):
+            migrations_needed.append((column_name, column_type))
+    return migrations_needed
 
-def _apply_pending_migrations(migrations_needed):
+def _apply_migrations(table_name, migrations_needed):
     current_app.logger.info(f"📦 Aplicando {len(migrations_needed)} migraciones...")
     for column_name, column_type in migrations_needed:
         try:
-            sql = f"ALTER TABLE invoices ADD COLUMN IF NOT EXISTS {column_name} {column_type}"
+            sql = f"ALTER TABLE {table_name} ADD COLUMN IF NOT EXISTS {column_name} {column_type}"
             db.session.execute(text(sql))
             current_app.logger.info(f"  ✅ Agregada columna: {column_name}")
         except Exception as e:
-            _handle_migration_error(column_name, e)
-    db.session.commit()
-    current_app.logger.info("✅ Migraciones aplicadas exitosamente!")
-
-def _handle_migration_error(column_name, error):
-    msg = str(error).lower()
-    if 'already exists' in msg or 'duplicate column' in msg:
-        current_app.logger.info(f"  ⏭️  Columna {column_name} ya existe")
-    else:
-        current_app.logger.error(f"  ❌ Error agregando {column_name}: {str(error)}")
+            msg = str(e).lower()
+            if 'already exists' in msg or 'duplicate column' in msg:
+                current_app.logger.info(f"  ⏭️  Columna {column_name} ya existe")
+            else:
+                current_app.logger.error(f"  ❌ Error agregando {column_name}: {str(e)}")
 
 def _migrate_existing_data():
     try:
@@ -90,7 +85,6 @@ def _migrate_existing_data():
                 WHERE nit_receptor IS NULL AND rfc_receptor IS NOT NULL
             """))
             current_app.logger.info("  ✅ Datos de RFC copiados a NIT")
-
         db.session.execute(text("""
             UPDATE invoices 
             SET email_receptor = (
@@ -99,14 +93,12 @@ def _migrate_existing_data():
             WHERE email_receptor IS NULL
         """))
         current_app.logger.info("  ✅ Emails de usuarios actualizados")
-
         db.session.execute(text("""
             UPDATE invoices 
             SET razon_social_emisor = 'GameTech Store SAS'
-            WHERE razon_social_emisor = 'GameTech Store SA de CV'
+            WHERE razon_social_emisor IN ('GameTech Store SA de CV')
         """))
         current_app.logger.info("  ✅ Razón social actualizada a Colombia")
-
         if check_column_exists('invoices', 'fecha_timbrado'):
             db.session.execute(text("""
                 UPDATE invoices 
@@ -114,17 +106,17 @@ def _migrate_existing_data():
                 WHERE fecha_validacion_dian IS NULL AND fecha_timbrado IS NOT NULL
             """))
             current_app.logger.info("  ✅ Fechas de validación actualizadas")
-        db.session.commit()
     except Exception as e:
         current_app.logger.warning(f"  ⚠️  Error migrando datos: {str(e)}")
 
-def _show_migration_summary():
+def _mostrar_resumen(table_name):
     try:
-        result = db.session.execute(text("SELECT COUNT(*) FROM invoices"))
+        result = db.session.execute(text(f"SELECT COUNT(*) FROM {table_name}"))
         total = result.scalar()
         current_app.logger.info(f"📊 Total de facturas en BD: {total}")
     except Exception:
         pass
+
 
 def init_auto_migrations(app):
     """Inicializar sistema de migraciones automáticas"""
