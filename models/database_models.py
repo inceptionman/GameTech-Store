@@ -178,7 +178,13 @@ class Hardware(db.Model):
     
     def get_especificaciones(self):
         """Obtener especificaciones como dict"""
-        return json.loads(self.especificaciones) if self.especificaciones else {}
+        if not self.especificaciones:
+            return {}
+        try:
+            return json.loads(self.especificaciones)
+        except (json.JSONDecodeError, TypeError, ValueError) as e:
+            print(f"Error parsing especificaciones for {self.id}: {e}")
+            return {}
     
     def get_ram_capacity_gb(self):
         """Extraer capacidad de RAM en GB"""
