@@ -221,6 +221,7 @@ let componentsData = {};
 
 // Cargar datos de componentes al iniciar
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('pc_builder: DOMContentLoaded - cargando componentes');
     loadComponentsData();
 
     // Event listeners
@@ -235,12 +236,14 @@ async function loadComponentsData() {
     try {
         const response = await fetch('/api/hardware/tipos');
         const data = await response.json();
+        console.log('pc_builder: tipos recibidos', data);
 
         // Para cada tipo, cargar los componentes disponibles
         for (const tipo of data.tipos) {
             const compResponse = await fetch(`/api/hardware/buscar?q=${tipo}`);
             const compData = await compResponse.json();
             componentsData[tipo] = compData.resultados;
+            console.log(`pc_builder: cargados ${componentsData[tipo].length} componentes para tipo=${tipo}`);
         }
     } catch (error) {
         console.error('Error cargando datos de componentes:', error);
@@ -374,8 +377,14 @@ function autoRecommend() {
                         componentes.find(c => c.marca === 'Intel' && c.modelo.includes('12400'));
                     break;
                 case 'GPU':
-                    recommended = budget >= 2000;
-                        componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('4060'));
+                    // Elegir GPU según presupuesto (corrige error previo)
+                    if (budget >= 2000) {
+                        recommended = componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('4070')) || componentes[0];
+                    } else if (budget >= 1200) {
+                        recommended = componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('4060')) || componentes[0];
+                    } else {
+                        recommended = componentes.find(c => c.marca === 'NVIDIA' && c.modelo.includes('3060')) || componentes[0];
+                    }
                     break;
                 case 'RAM':
                     recommended = componentes.find(c => c.especificaciones && c.especificaciones.capacidad === '16 GB');
