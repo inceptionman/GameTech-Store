@@ -251,3 +251,25 @@ footer a:hover {
         color: #ffffff;
     }
 }
+
+/* Mejorar contraste de texto en tarjetas */
+.card h5, .card h6 {
+    color: #212529 !important;
+}
+
+.card p, .card li {
+    color: #495057 !important;
+}
+
+.card strong {
+    color: #212529 !important;
+}
+
+/* Asegurar legibilidad en alertas */
+.alert-info h5, .alert-info p, .alert-info strong {
+    color: #004085 !important;
+}
+
+.alert-info ul li {
+    color: #004085 !important;
+}
