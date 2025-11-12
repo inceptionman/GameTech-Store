@@ -1,10 +1,11 @@
 """
-Controlador de facturas electrónicas
-Maneja la solicitud, generación y descarga de facturas
+Controlador de facturas electrónicas colombianas
+Maneja la solicitud, generación y envío de facturas por correo
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, jsonify, current_app
 from flask_login import login_required, current_user
-from database import db
+from flask_mail import Message
+from database import db, mail
 from models.database_models import Invoice, Order, User
 from utils.invoice_generator import InvoiceGenerator
 import os
@@ -33,23 +34,25 @@ def solicitar_factura(order_id):
         return redirect(url_for(VER_FACTURA, invoice_id=order.invoice.id))
     
     if request.method == 'POST':
-        # Obtener datos fiscales del formulario
-        rfc = request.form.get('rfc', '').strip().upper()
+        # Obtener datos fiscales del formulario (Colombia)
+        nit = request.form.get('nit', '').strip()
+        tipo_documento = request.form.get('tipo_documento', '31')  # 13=CC, 31=NIT
         razon_social = request.form.get('razon_social', '').strip()
         direccion_fiscal = request.form.get('direccion_fiscal', '').strip()
+        ciudad = request.form.get('ciudad', '').strip()
+        departamento = request.form.get('departamento', '').strip()
         codigo_postal = request.form.get('codigo_postal', '').strip()
-        regimen_fiscal = request.form.get('regimen_fiscal', '').strip()
-        uso_cfdi = request.form.get('uso_cfdi', 'G03')
-        forma_pago = request.form.get('forma_pago', '03')
+        telefono = request.form.get('telefono', '').strip()
+        forma_pago = request.form.get('forma_pago', 'Tarjeta de Crédito')
         
         # Validar datos requeridos
-        if not rfc or not razon_social:
-            flash('RFC y Razón Social son obligatorios', 'danger')
+        if not nit or not razon_social:
+            flash('NIT/CC y Razón Social son obligatorios', 'danger')
             return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
         
-        # Validar formato de RFC (simplificado)
-        if len(rfc) not in [12, 13]:
-            flash('RFC inválido. Debe tener 12 o 13 caracteres', 'danger')
+        # Validar formato de NIT (simplificado)
+        if len(nit) != 10 and len(nit) != 11:
+            flash('NIT inválido. Debe tener 10 o 11 caracteres', 'danger')
             return render_template(SOLICITAR_FACTURA, order=order, user=current_user)
         
         try:

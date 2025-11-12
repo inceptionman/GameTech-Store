@@ -160,6 +160,20 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+@media (prefers-color-scheme: dark) {
+    .card-title, .card .card-body, .game-details h5, .card .badge {
+        color: #020202 !important;
+    }
+    .card {
+        background: #e6e6e6;
+    }
+}
+
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
