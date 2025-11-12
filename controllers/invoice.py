@@ -5,7 +5,7 @@ Maneja la solicitud, generación y envío de facturas por correo
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, jsonify, current_app
 from flask_login import login_required, current_user
 from flask_mail import Message
-from database import db, mail
+from extensions import db
 from models.database_models import Invoice, Order, User
 from utils.invoice_generator import InvoiceGenerator
 import os
