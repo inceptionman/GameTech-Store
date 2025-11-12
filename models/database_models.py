@@ -403,51 +403,55 @@ class GameRequirements(db.Model):
 
 
 class Invoice(db.Model):
-    """Modelo de factura electrónica"""
+    """Modelo de factura electrónica colombiana"""
     __tablename__ = 'invoices'
     
     id = db.Column(db.Integer, primary_key=True)
-    uuid = db.Column(db.String(36), unique=True, nullable=False, index=True)
-    folio = db.Column(db.String(50), nullable=False)
+    uuid = db.Column(db.String(36), unique=True, nullable=False, index=True)  # CUFE
+    folio = db.Column(db.String(50), nullable=False)  # Número de factura
     
     # Relaciones
     user_id = db.Column(db.Integer, db.ForeignKey(USERS_ID), nullable=False)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     
-    # Datos fiscales del cliente
-    rfc_receptor = db.Column(db.String(13), nullable=False)
+    # Datos fiscales del cliente (Colombia)
+    nit_receptor = db.Column(db.String(20), nullable=False)  # NIT o CC
+    tipo_documento_receptor = db.Column(db.String(10), default='31')  # 13=CC, 31=NIT
     razon_social_receptor = db.Column(db.String(200), nullable=False)
     direccion_fiscal = db.Column(db.String(300))
+    ciudad = db.Column(db.String(100))
+    departamento = db.Column(db.String(100))
     codigo_postal = db.Column(db.String(10))
-    regimen_fiscal = db.Column(db.String(100))
-    uso_cfdi = db.Column(db.String(10), default='G03')  # Gastos en general
+    telefono = db.Column(db.String(20))
+    email_receptor = db.Column(db.String(200))
     
-    # Datos fiscales del emisor (GameTech Store)
-    rfc_emisor = db.Column(db.String(13), default='GTS123456789')
-    razon_social_emisor = db.Column(db.String(200), default='GameTech Store SA de CV')
+    # Datos fiscales del emisor (GameTech Store Colombia)
+    nit_emisor = db.Column(db.String(20), default='900123456-7')
+    razon_social_emisor = db.Column(db.String(200), default='GameTech Store SAS')
+    regimen_emisor = db.Column(db.String(50), default='Responsable de IVA')
     
-    # Montos
+    # Montos (Colombia - IVA 19%)
     subtotal = db.Column(db.Float, nullable=False)
-    iva = db.Column(db.Float, nullable=False)
+    iva = db.Column(db.Float, nullable=False)  # 19% en Colombia
     total = db.Column(db.Float, nullable=False)
     
     # Método y forma de pago
-    metodo_pago = db.Column(db.String(10), default='PUE')  # Pago en una sola exhibición
-    forma_pago = db.Column(db.String(10), default='03')  # Transferencia electrónica
+    metodo_pago = db.Column(db.String(50), default='Contado')  # Contado, Crédito
+    forma_pago = db.Column(db.String(50), default='Tarjeta de Crédito')
     
     # Estado y fechas
     status = db.Column(db.String(20), default='active')  # active, cancelled
     fecha_emision = db.Column(db.DateTime, default=datetime.utcnow)
-    fecha_timbrado = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_validacion_dian = db.Column(db.DateTime, default=datetime.utcnow)
     fecha_cancelacion = db.Column(db.DateTime, nullable=True)
     
     # Archivos
     pdf_path = db.Column(db.String(300))
     xml_path = db.Column(db.String(300))
     
-    # Sello digital (simplificado)
-    sello_digital = db.Column(db.Text)
-    cadena_original = db.Column(db.Text)
+    # CUFE y firma digital (Colombia)
+    cufe = db.Column(db.Text)  # Código Único de Factura Electrónica
+    qr_code = db.Column(db.Text)  # Código QR para validación DIAN
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
