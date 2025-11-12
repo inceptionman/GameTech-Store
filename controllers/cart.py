@@ -251,8 +251,12 @@ def orden_confirmada(order_id):
 @login_required
 def mis_ordenes():
     """Ver historial de órdenes del usuario"""
-    orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
-    return render_template('cart/mis_ordenes.html', orders=orders)
+    try:
+        orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
+        return render_template('cart/mis_ordenes.html', orders=orders)
+    except Exception as e:
+        flash(f'Error al cargar órdenes: {str(e)}', 'danger')
+        return redirect(url_for('index'))
 
 @cart_bp.route('/api/carrito/count')
 @login_required
