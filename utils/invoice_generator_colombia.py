@@ -110,8 +110,8 @@ class InvoiceGeneratorColombia:
             ['INFORMACIÓN DE LA FACTURA', 'DATOS DEL RECEPTOR'],
             [f'Folio: {invoice.folio}', f'NIT/CC: {invoice.nit_receptor}'],
             [f'Fecha: {invoice.fecha_emision.strftime("%d/%m/%Y %H:%M")}', f'Razón Social: {invoice.razon_social_receptor}'],
-            [f'CUFE: {invoice.cufe[:20]}...', f'Dirección: {invoice.direccion_fiscal_receptor or "N/A"}'],
-            [f'Moneda: {invoice.moneda}', f'Ciudad: {invoice.ciudad or "N/A"}'],
+            [f'CUFE: {invoice.cufe[:20]}...', f'Dirección: {invoice.direccion_fiscal or "N/A"}'],
+            [f'Moneda: COP', f'Ciudad: {invoice.ciudad or "N/A"}'],
             [f'Forma de Pago: {invoice.forma_pago}', f'Departamento: {invoice.departamento or "N/A"}'],
             ['', f'Email: {invoice.email_receptor}']
         ]
