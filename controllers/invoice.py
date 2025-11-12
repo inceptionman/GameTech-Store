@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 from flask_mail import Message
 from extensions import db
 from models.database_models import Invoice, Order, User
-from utils.invoice_generator import InvoiceGenerator
+from utils.invoice_generator_colombia import InvoiceGeneratorColombia as InvoiceGenerator
 import os
 from datetime import datetime
 
@@ -29,9 +29,10 @@ def solicitar_factura(order_id):
         return redirect(url_for(CART_ORDENES))
     
     # Verificar si ya tiene factura
-    if hasattr(order, 'invoice') and order.invoice:
+    existing_invoice = Invoice.query.filter_by(order_id=order.id).first()
+    if existing_invoice:
         flash('Esta orden ya tiene una factura generada', 'info')
-        return redirect(url_for(VER_FACTURA, invoice_id=order.invoice.id))
+        return redirect(url_for(VER_FACTURA, invoice_id=existing_invoice.id))
     
     if request.method == 'POST':
         # Obtener datos fiscales del formulario (Colombia)
@@ -58,45 +59,73 @@ def solicitar_factura(order_id):
         try:
             # Guardar datos fiscales en el usuario si lo solicita
             if request.form.get('guardar_datos'):
-                current_user.rfc = rfc
+                current_user.rfc = nit  # Guardar NIT en campo rfc
                 current_user.razon_social = razon_social
                 current_user.direccion_fiscal = direccion_fiscal
                 current_user.codigo_postal = codigo_postal
-                current_user.regimen_fiscal = regimen_fiscal
+                db.session.commit()
             
-            # Crear factura
-            user_fiscal_data = {
-                'rfc': rfc,
-                'razon_social': razon_social,
-                'direccion_fiscal': direccion_fiscal,
-                'codigo_postal': codigo_postal,
-                'regimen_fiscal': regimen_fiscal,
-                'uso_cfdi': uso_cfdi,
-                'forma_pago': forma_pago
-            }
+            # Crear factura con datos colombianos
+            invoice = Invoice(
+                order_id=order.id,
+                user_id=current_user.id,
+                folio=f'FE-{order.id:06d}',
+                fecha_emision=datetime.now(),
+                
+                # Datos del receptor (Colombia)
+                nit_receptor=nit,
+                tipo_documento_receptor=tipo_documento,
+                razon_social_receptor=razon_social,
+                direccion_fiscal_receptor=direccion_fiscal,
+                ciudad=ciudad,
+                departamento=departamento,
+                codigo_postal_receptor=codigo_postal,
+                telefono=telefono,
+                email_receptor=current_user.email,
+                
+                # Datos del emisor
+                nit_emisor='900123456-7',
+                razon_social_emisor='GameTech Store SAS',
+                regimen_emisor='Responsable de IVA',
+                
+                # Montos
+                subtotal=order.total / 1.19,  # IVA 19% Colombia
+                iva=order.total - (order.total / 1.19),
+                total=order.total,
+                
+                # Otros datos
+                forma_pago=forma_pago,
+                moneda='COP',
+                status='valid'
+            )
             
-            invoice = Invoice.create_from_order(order, user_fiscal_data)
-            
-            # Generar sello digital simplificado
-            invoice.sello_digital = generate_simple_seal(invoice)
-            invoice.cadena_original = generate_cadena_original(invoice)
+            # Generar CUFE (simplificado)
+            import uuid
+            invoice.cufe = str(uuid.uuid4())
             
             db.session.add(invoice)
             db.session.flush()  # Para obtener el ID
             
             # Generar PDF
-            pdf_filename = f'factura_{invoice.folio}_{invoice.uuid[:8]}.pdf'
-            pdf_path = os.path.join('static', 'invoices', 'pdf', pdf_filename)
-            full_pdf_path = os.path.join(os.getcwd(), pdf_path)
-            
-            InvoiceGenerator.generate_pdf(invoice, order, full_pdf_path)
-            
-            invoice.pdf_path = pdf_path
+            try:
+                pdf_filename = f'factura_{invoice.folio}_{invoice.cufe[:8]}.pdf'
+                pdf_dir = os.path.join('static', 'invoices', 'pdf')
+                os.makedirs(pdf_dir, exist_ok=True)
+                pdf_path = os.path.join(pdf_dir, pdf_filename)
+                full_pdf_path = os.path.join(os.getcwd(), pdf_path)
+                
+                InvoiceGenerator.generate_pdf(invoice, order, full_pdf_path)
+                invoice.pdf_path = pdf_path
+                
+                current_app.logger.info(f'PDF generado: {pdf_path}')
+            except Exception as pdf_error:
+                current_app.logger.error(f'Error generando PDF: {str(pdf_error)}')
+                # Continuar sin PDF si falla
             
             db.session.commit()
             
             flash(f'¡Factura generada exitosamente! Folio: {invoice.folio}', 'success')
-            return redirect(url_for(VER_FACTURA, invoice_id=invoice.id))
+            return redirect(url_for(CART_ORDENES))
             
         except Exception as e:
             db.session.rollback()
