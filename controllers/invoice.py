@@ -70,7 +70,13 @@ def solicitar_factura(order_id):
             
             # Crear factura con datos colombianos
             current_app.logger.info('Creando objeto Invoice')
+            
+            # Generar UUID único
+            import uuid as uuid_lib
+            invoice_uuid = str(uuid_lib.uuid4())
+            
             invoice = Invoice(
+                uuid=invoice_uuid,
                 order_id=order.id,
                 user_id=current_user.id,
                 folio=f'FE-{order.id:06d}',
@@ -80,10 +86,10 @@ def solicitar_factura(order_id):
                 nit_receptor=nit,
                 tipo_documento_receptor=tipo_documento,
                 razon_social_receptor=razon_social,
-                direccion_fiscal_receptor=direccion_fiscal,
+                direccion_fiscal=direccion_fiscal,
                 ciudad=ciudad,
                 departamento=departamento,
-                codigo_postal_receptor=codigo_postal,
+                codigo_postal=codigo_postal,
                 telefono=telefono,
                 email_receptor=current_user.email,
                 
@@ -99,14 +105,13 @@ def solicitar_factura(order_id):
                 
                 # Otros datos
                 forma_pago=forma_pago,
-                moneda='COP',
-                status='valid'
+                status='active',
+                
+                # CUFE (Código Único de Factura Electrónica)
+                cufe=invoice_uuid
             )
             
-            # Generar CUFE (simplificado)
-            import uuid
-            invoice.cufe = str(uuid.uuid4())
-            current_app.logger.info(f'CUFE generado: {invoice.cufe[:20]}...')
+            current_app.logger.info(f'CUFE generado: {invoice_uuid[:20]}...')
             
             db.session.add(invoice)
             
