@@ -83,15 +83,15 @@ def solicitar_factura(order_id):
                 fecha_emision=datetime.now(),
                 
                 # Datos del receptor (Colombia)
-                nit_receptor=nit,
-                tipo_documento_receptor=tipo_documento,
-                razon_social_receptor=razon_social,
-                direccion_fiscal=direccion_fiscal,
-                ciudad=ciudad,
-                departamento=departamento,
-                codigo_postal=codigo_postal,
-                telefono=telefono,
-                email_receptor=current_user.email,
+                nit_receptor=nit or '000000000',
+                tipo_documento_receptor=tipo_documento or '31',
+                razon_social_receptor=razon_social or 'Cliente General',
+                direccion_fiscal=direccion_fiscal or 'N/A',
+                ciudad=ciudad or 'Bogotá',
+                departamento=departamento or 'Bogotá D.C.',
+                codigo_postal=codigo_postal or '110111',
+                telefono=telefono or '0000000000',
+                email_receptor=current_user.email or 'cliente@example.com',
                 
                 # Datos del emisor
                 nit_emisor='900123456-7',
@@ -99,12 +99,13 @@ def solicitar_factura(order_id):
                 regimen_emisor='Responsable de IVA',
                 
                 # Montos
-                subtotal=order.total / 1.19,  # IVA 19% Colombia
-                iva=order.total - (order.total / 1.19),
-                total=order.total,
+                subtotal=float(order.total / 1.19),  # IVA 19% Colombia
+                iva=float(order.total - (order.total / 1.19)),
+                total=float(order.total),
                 
                 # Otros datos
-                forma_pago=forma_pago,
+                forma_pago=forma_pago or 'Tarjeta de Crédito',
+                metodo_pago='Contado',
                 status='active',
                 
                 # CUFE (Código Único de Factura Electrónica)

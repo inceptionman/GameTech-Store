@@ -12,6 +12,55 @@ migrate_bp = Blueprint('migrate', __name__)
 # Clave secreta para proteger el endpoint
 SECRET_KEY = os.environ.get('MIGRATION_SECRET', 'temp-migration-key-2024')
 
+@migrate_bp.route('/limpiar-facturas-parciales/<secret>')
+def limpiar_facturas_parciales(secret):
+    """Eliminar facturas sin PDF (parciales)"""
+    
+    # Verificar clave secreta
+    if secret != SECRET_KEY:
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    try:
+        from models.database_models import Invoice
+        
+        # Buscar facturas sin PDF
+        facturas_parciales = Invoice.query.filter(
+            (Invoice.pdf_path == None) | (Invoice.pdf_path == '')
+        ).all()
+        
+        if not facturas_parciales:
+            return jsonify({
+                'status': 'success',
+                'message': 'No hay facturas parciales',
+                'eliminadas': 0
+            })
+        
+        # Eliminar facturas parciales
+        ids_eliminados = []
+        for factura in facturas_parciales:
+            ids_eliminados.append({
+                'id': factura.id,
+                'order_id': factura.order_id,
+                'folio': factura.folio
+            })
+            db.session.delete(factura)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Facturas parciales eliminadas',
+            'eliminadas': len(ids_eliminados),
+            'facturas': ids_eliminados
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
 @migrate_bp.route('/ejecutar-migraciones/<secret>')
 def ejecutar_migraciones(secret):
     """Ejecutar migraciones de base de datos"""
